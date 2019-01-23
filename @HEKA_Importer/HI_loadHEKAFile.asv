@@ -46,12 +46,11 @@ end
     SR = cell(size(f));
 for iExp = 1:numel(f)
     dataRaw{iExp,:} = reshape(ephysData.(f{iExp}).data(1,:),numel(ephysData.(f{iExp}).data(1,:)),1);
-    SR{iExp,:} =  ephysData.(f{iExp}).samplingFreq(:);
-    
+    SR{iExp,:} =  reshape(ephysData.(f{iExp}).samplingFreq{:};numel(ephysData.(f{iExp}).samplingFreq{:}),1) 
 end
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
-    obj.RecTable.SR = cell2mat([ephysData.(f{:}).samplingFreq(:)]);
+    obj.RecTable.SR = vertcat(SR{:});
     
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
     for i=1:length(t.dataRaw)
