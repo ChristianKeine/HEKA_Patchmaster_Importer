@@ -37,28 +37,11 @@ end
     
     obj.HI_extractHEKADataTree(tree);
     obj.HI_extractHEKAStimTree(stimTree);
-    solutions = obj.HI_extractHEKASolutionTree(solTree);
-    
-    % ADD FIELDS FOR SELECTION OF RECS AND TRIALS
-%     t.selected = zeros(size(t.Rec));
-%     selected_Trials = cell(numel(t.Rec),1);
-%     for iR=1:numel(t.Rec)
-%         if t.nSweeps(iR)>1
-%             selected_Trials{iR} = ones(t.nSweeps(iR),1);
-%         else selected_Trials{iR} = NaN; %#ok<SEPEX>
-%         end
-%     end
-%     
-%     t.selected_Trials = selected_Trials(:);
-    
-    % EXTRACT DATA AND SORT IN TABLE
+    obj.HI_extractHEKASolutionTree(solTree);
+
+
     f = fields(ephysData);
-%     
-%     
-%     if numel(f)>1
-%         warning('Multiple cells per recordings currently not supported. Aborting.')
-%         return
-%     end
+
     
 for Exp = reshape(f,1,numel(f))
     tableT.dataRaw = ephysData.(f{:}).data(1,:)';
