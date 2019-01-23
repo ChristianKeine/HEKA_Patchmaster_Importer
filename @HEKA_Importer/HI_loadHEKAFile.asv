@@ -46,18 +46,21 @@ end
     SR = cell(size(f));
 for iExp = 1:numel(f)
     dataRaw{iExp,:} = reshape(ephysData.(f{iExp}).data(1,:),numel(ephysData.(f{iExp}).data(1,:)),1);
-    SR{iExp,:} =  reshape(ephysData.(f{iExp}).samplingFreq{:};numel(ephysData.(f{iExp}).samplingFreq{:}),1) 
+    SR{iExp,:} =  reshape([ephysData.(f{iExp}).samplingFreq{:}], numel([ephysData.(f{iExp}).samplingFreq{:}]),1); 
 end
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
     
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
-    for i=1:length(t.dataRaw)
-        t.dataRaw{i} = t.dataRaw{i}+randn(size(t.dataRaw{i}))*eps;
-       
-    end
     
+    addEPS = @(x) x+randn(cell2mat(size(x)))*eps;    
+    obj.RecTable.dataRaw = cellfun(addEPS,obj.RecTable.dataRaw,'UniformOutput',false);
+    
+%     for i=1:length(t.dataRaw)
+%         obj.RecTable.dataRaw{i} = t.dataRaw{i}+randn(size(t.dataRaw{i}))*eps;      
+%     end
+%     
     
     % bundle data in container
     %         keyset = {'data','tree','stimTree','images','recID','fileID','notebook','solTree','solutions'};

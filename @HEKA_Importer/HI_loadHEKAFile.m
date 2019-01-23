@@ -54,7 +54,7 @@ end
     
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
     for i=1:length(t.dataRaw)
-        t.dataRaw{i} = t.dataRaw{i}+randn(size(t.dataRaw{i}))*eps;
+        obj.RecTable.dataRaw{i} = t.dataRaw{i}+randn(size(t.dataRaw{i}))*eps;
        
     end
     
