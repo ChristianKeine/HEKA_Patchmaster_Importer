@@ -42,15 +42,16 @@ end
 
     f = fields(ephysData);
 
-    
-for Exp = reshape(f,1,numel(f))
-    tableT.dataRaw = ephysData.(Exp).data(1,:)';
-    
+    dataRaw = cell(size(f));
+    SR = cell(size(f));
+for iExp = 1:numel(f)
+    dataRaw{iExp,:} = reshape(ephysData.(f{iExp}).data(1,:),numel(ephysData.(f{iExp}).data(1,:)),1);
+    SR{iExp,:} =  ephysData.(f{iExp}).samplingFreq(:);
     
 end
 
-    t.dataRaw = ephysData.(f{:}).data(1,:)';
-    t.SR = cell2mat(ephysData.(f{1}).samplingFreq(:));
+    obj.RecTable.dataRaw = vertcat(dataRaw{:});
+    obj.RecTable.SR = cell2mat([ephysData.(f{:}).samplingFreq(:)]);
     
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
     for i=1:length(t.dataRaw)
