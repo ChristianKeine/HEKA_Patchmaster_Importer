@@ -9,7 +9,7 @@ classdef HEKA_Importer < handle
         hGUI
         opt
         RecTable
-        solutions
+        solutions = []
         
     end
     

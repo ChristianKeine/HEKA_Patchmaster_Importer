@@ -7,6 +7,9 @@ function HI_extractHEKASolutionTree(obj,solTree)
 %3: Chemicals
 
 
+if size(solTree,2) > 1 % OTHERWISE NOT SOLUTIONS DEFINED
+
+
 % FIND NUMBER OF SOLUTIONS AND INDICES
 sInd=find(~cellfun(@isempty,solTree(:,2)));
 nSolutions = numel(sInd);
@@ -30,7 +33,7 @@ for iS = 1:nSolutions
 
 end
 
-
+end
 
 % for iS = 1:nSolutions % CYCLE THROUGH SOLUTIONS AND EXTRACT CHEMICAL NAME AND CONCENTRATION
 %     if iS<nSolutions
