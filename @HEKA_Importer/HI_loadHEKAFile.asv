@@ -54,39 +54,15 @@ end
     
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
     
-    addEPS = @(x) x+randn(cell2mat(size(x)))*eps;    
+    addEPS = @(x) x+randn(size(x))*eps;    
     obj.RecTable.dataRaw = cellfun(addEPS,obj.RecTable.dataRaw,'UniformOutput',false);
     
-%     for i=1:length(t.dataRaw)
-%         obj.RecTable.dataRaw{i} = t.dataRaw{i}+randn(size(t.dataRaw{i}))*eps;      
-%     end
-%     
-    
-    % bundle data in container
-    %         keyset = {'data','tree','stimTree','images','recID','fileID','notebook','solTree','solutions'};
-    %         valueset = {t,tree,stimTree,[],obj.recID,obj.MatFileID,{tree{2,2}.GrText;tree{3,3}.SeComment},solTree,solutions};
-    %
-    
-%     solFields = fieldnames(solutions);
-%     solNB = cell(size(solFields));
-%     offset = 30;
-%     for iS = 1:numel(solNB)
-%         solNB{iS}{1,:} = solFields{iS};
-%         solNB{iS}{2,:} = char(32);
-%         for iC = 3:size(solutions.(solFields{iS}),1)
-%            chemNameL = strlength(solutions.(solFields{iS}){iC-2,'Chemical'}); 
-%            solNB{iS}{iC,:} =  solutions.(solFields{iS}){iC-2,'Chemical'}+repmat(char(32),1,offset-chemNameL)+solutions.(solFields{iS}){iC-2,'Concentration'};
-%         end
-%       solNB{iS}{end+1,:} = char(32);
-%         
-%     end
-%     notebook = {tree{2,2}.GrText;tree{3,3}.SeComment;vertcat(solNB{:})};
-%     
-    notebook = {tree{2,2}.GrText;tree{3,3}.SeComment};
-    trees = struct('dataTree',{tree},'stimTree',{stimTree},'solutionTree',{solTree});
-    keyset = {'data','trees','images','recID','fileID','notebook','solutions','fileVersion'};
-    valueset = {t,trees,[],obj.recID,obj.MatFileID,notebook,solutions,1.1};
-    obj.R = containers.Map(keyset,valueset);
+
+%     notebook = {tree{2,2}.GrText;tree{3,3}.SeComment};
+    obj.trees = struct('dataTree',{tree},'stimTree',{stimTree},'solutionTree',{solTree});
+%     keyset = {'data','trees','images','recID','fileID','notebook','solutions','fileVersion'};
+%     valueset = {t,trees,[],obj.recID,obj.MatFileID,notebook,solutions,1.1};
+%     obj.R = containers.Map(keyset,valueset);
     
 % else % LOAD ONLY SOLUTION FILE
     

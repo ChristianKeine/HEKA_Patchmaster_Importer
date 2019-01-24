@@ -1066,81 +1066,81 @@ for ser=1:nseries
         % Now format for sigTOOL        
         
         % The channel header
-        hdr=scCreateChannelHeader();
-        hdr.channel=channelnumber;
-        hdr.title=tr_s(1).TrLabel;
-        hdr.source=dir(thisfile);
-        hdr.source.name=thisfile;
-        
-        hdr.Group.Number=grp;
-        hdr.Group.Label=tree{ser_row(ser),3}.SeLabel;
-        hdr.Group.SourceChannel=0;
-        s.hdr.Group.DateNum=datestr(now());
+%         hdr=scCreateChannelHeader();
+%         hdr.channel=channelnumber;
+%         hdr.title=tr_s(1).TrLabel;
+%         hdr.source=dir(thisfile);
+%         hdr.source.name=thisfile;
+%         
+%         hdr.Group.Number=grp;
+%         hdr.Group.Label=tree{ser_row(ser),3}.SeLabel;
+%         hdr.Group.SourceChannel=0;
+%         s.hdr.Group.DateNum=datestr(now());
         
         % Patch details
-        hdr.Patch.Type=patchType(tr_s(1).TrRecordingMode);
-        hdr.Patch.Em=tr_s(1).TrCellPotential; 
-        hdr.Patch.isLeak=bitget(tr_s(1).TrDataKind, 2);
-        if hdr.Patch.isLeak==1
-            hdr.Patch.isLeakSubtracted=false;
-        else
-            hdr.Patch.isLeakSubtracted=true;
-            hdr.Patch.isZeroAdjusted=true;
-        end
-        
+%         hdr.Patch.Type=patchType(tr_s(1).TrRecordingMode);
+%         hdr.Patch.Em=tr_s(1).TrCellPotential; 
+%         hdr.Patch.isLeak=bitget(tr_s(1).TrDataKind, 2);
+%         if hdr.Patch.isLeak==1
+%             hdr.Patch.isLeakSubtracted=false;
+%         else
+%             hdr.Patch.isLeakSubtracted=true;
+%             hdr.Patch.isZeroAdjusted=true;
+%         end
+%         
         % Temp
-        temp=cell2mat({tree{sw_row(1:end-1), 4}});
-        templist=cell2mat({temp.SwTemperature});
-        if numel(unique(templist==1))
-            hdr.Environment.Temperature=tree{sw_row(1), 4}.SwTemperature;
-        else
-            hdr.Environment.Temperature
-        end
-        
-        if size(data,2)==1
-            hdr.Channeltype='Continuous Waveform';
-        elseif isFramed
-            hdr.Channeltype='Framed Waveform';
-        else
-            hdr.Channeltype='Episodic Waveform';
-        end
+%         temp=cell2mat({tree{sw_row(1:end-1), 4}});
+%         templist=cell2mat({temp.SwTemperature});
+%         if numel(unique(templist==1))
+%             hdr.Environment.Temperature=tree{sw_row(1), 4}.SwTemperature;
+%         else
+%             hdr.Environment.Temperature
+%         end
+%         
+%         if size(data,2)==1
+%             hdr.Channeltype='Continuous Waveform';
+%         elseif isFramed
+%             hdr.Channeltype='Framed Waveform';
+%         else
+%             hdr.Channeltype='Episodic Waveform';
+%         end
         
         % The waveform data
         % Continuous/frame based/uneven epochs
-        if size(data, 2)==1
-            hdr.channeltype='Continuous Waveform';
-            hdr.adc.Labels={'Time'};
-        else
-            if isFramed
-                hdr.channeltype='Framed Waveform';
-                hdr.adc.Labels={'Time' 'Frame'};
-            else
-                hdr.channeltype='Episodic Waveform';
-                hdr.adc.Labels={'Time' 'Epoch'};
-            end
-        end
-        hdr.adc.TargetClass='adcarray';
-        hdr.adc.Npoints=double(cell2mat({tr_s.TrDataPoints}));
+%         if size(data, 2)==1
+%             hdr.channeltype='Continuous Waveform';
+%             hdr.adc.Labels={'Time'};
+%         else
+%             if isFramed
+%                 hdr.channeltype='Framed Waveform';
+%                 hdr.adc.Labels={'Time' 'Frame'};
+%             else
+%                 hdr.channeltype='Episodic Waveform';
+%                 hdr.adc.Labels={'Time' 'Epoch'};
+%             end
+%         end
+%         hdr.adc.TargetClass='adcarray';
+%         hdr.adc.Npoints=double(cell2mat({tr_s.TrDataPoints}));
         
         % Set the sample interval - always in seconds for sigTOOL
         % 17.04.10 Ignore any trailing characters
-        if isConstantScaling && isConstantFormat
-            % Fix added 28.11.2011 - may be 1 char only
-            if numel(tr_s(1).TrXUnit)<2
-                tr_s(1).TrXUnit(2)=' ';
-            end
-            switch deblank(tr_s(1).TrXUnit(1:2))% Must be constant or error thrown above
-                case 's'
-                    tsc=1e6;
-                case 'ms'
-                    tsc=1e3;
-                case 'µs'
-                    tsc=1;
-                otherwise
-                    error('Unsupported time units');
-            end
-            hdr.adc.SampleInterval=[tr_s(1).TrXInterval*tsc 1/tsc];
-        end
+%         if isConstantScaling && isConstantFormat
+%             % Fix added 28.11.2011 - may be 1 char only
+%             if numel(tr_s(1).TrXUnit)<2
+%                 tr_s(1).TrXUnit(2)=' ';
+%             end
+%             switch deblank(tr_s(1).TrXUnit(1:2))% Must be constant or error thrown above
+%                 case 's'
+%                     tsc=1e6;
+%                 case 'ms'
+%                     tsc=1e3;
+%                 case 'µs'
+%                     tsc=1;
+%                 otherwise
+%                     error('Unsupported time units');
+%             end
+%             hdr.adc.SampleInterval=[tr_s(1).TrXInterval*tsc 1/tsc];
+%         end
         
         % Now scale the data to real world units
         % Note we also apply zero adjustment
@@ -1149,18 +1149,18 @@ for ser=1:nseries
         end
         
         % Get the data range....
-        [sc prefix]=LocalDataScaling(data);        
+%         [sc prefix]=LocalDataScaling(data);        
         %... and scale the data
-        data=data*sc;
+%         data=data*sc;
         matData{channelnumber}= data;
         
         % Adjust the units string accordingly
-        switch tr_s(1).TrYUnit
-            case {'V' 'A'}
-                hdr.adc.Units=[prefix tr_s(1).TrYUnit];
-            otherwise
-                hdr.adc.Units=[tr_s(1).TrYUnit '*' sprintf('%g',sc)];
-        end
+%         switch tr_s(1).TrYUnit
+%             case {'V' 'A'}
+%                 hdr.adc.Units=[prefix tr_s(1).TrYUnit];
+%             otherwise
+%                 hdr.adc.Units=[tr_s(1).TrYUnit '*' sprintf('%g',sc)];
+%         end
         
         if isConstantScaling
             [res intflag]=LocalGetRes(fmt);
@@ -1171,41 +1171,41 @@ for ser=1:nseries
             castfcn=str2func(highest);
         end
         
-        if intflag
-            % Set scaling/offset and cast to integer type
-            hdr.adc.Scale=(max(data(:))-min(data(:)))/res;
-            hdr.adc.DC=(min(data(:))+max(data(:)))/2;
-            imp.adc=castfcn((data-hdr.adc.DC)/hdr.adc.Scale);
-        else
-            % Preserve as floating point
-            hdr.adc.Scale=1;
-            hdr.adc.DC=0;
-            imp.adc=castfcn(data);
-        end
+%         if intflag
+%             % Set scaling/offset and cast to integer type
+%             hdr.adc.Scale=(max(data(:))-min(data(:)))/res;
+%             hdr.adc.DC=(min(data(:))+max(data(:)))/2;
+%             imp.adc=castfcn((data-hdr.adc.DC)/hdr.adc.Scale);
+%         else
+%             % Preserve as floating point
+%             hdr.adc.Scale=1;
+%             hdr.adc.DC=0;
+%             imp.adc=castfcn(data);
+%         end
         
-        hdr.adc.YLim=[double(min(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC...
-            double(max(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC];
+%         hdr.adc.YLim=[double(min(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC...
+%             double(max(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC];
         
         % Timestamps
-        StartTimes=cell2mat({sw_s.SwTime})+cell2mat({tr_s.TrTimeOffset});
-        imp.tim=(StartTimes-min(StartTimes))';
-        if any(cell2mat({tr_s.TrXStart})+cell2mat({tr_s.TrXStart}));
-            imp.tim(:,2)=imp.tim(:,1)+cell2mat({tr_s.TrXStart}');
-        end
-        imp.tim(:,end+1)=imp.tim(:,1)+(double(cell2mat({tr_s.TrDataPoints})-1).*cell2mat({tr_s.TrXInterval}))';
-        
+%         StartTimes=cell2mat({sw_s.SwTime})+cell2mat({tr_s.TrTimeOffset});
+%         imp.tim=(StartTimes-min(StartTimes))';
+%         if any(cell2mat({tr_s.TrXStart})+cell2mat({tr_s.TrXStart}));
+%             imp.tim(:,2)=imp.tim(:,1)+cell2mat({tr_s.TrXStart}');
+%         end
+%         imp.tim(:,end+1)=imp.tim(:,1)+(double(cell2mat({tr_s.TrDataPoints})-1).*cell2mat({tr_s.TrXInterval}))';
+%         
         % Scale and round off to nanoseconds
-        imp.tim=round(imp.tim*10^9);
-        hdr.tim.Class='tstamp';
-        hdr.tim.Scale=1e-9;
-        hdr.tim.Shift=0;
-        hdr.tim.Func=[];
-        hdr.tim.Units=1;
-        
-        imp.mrk=[];
+%         imp.tim=round(imp.tim*10^9);
+%         hdr.tim.Class='tstamp';
+%         hdr.tim.Scale=1e-9;
+%         hdr.tim.Shift=0;
+%         hdr.tim.Func=[];
+%         hdr.tim.Units=1;
+%         
+%         imp.mrk=[];
         
 %         scSaveImportedChannel(matfilename, channelnumber, imp, hdr);
-        clear('imp','hdr','data');
+         clear('imp','hdr','data');
         
         channelnumber=channelnumber+1;
     end

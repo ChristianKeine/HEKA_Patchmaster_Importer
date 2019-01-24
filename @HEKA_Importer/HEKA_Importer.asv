@@ -2,20 +2,26 @@ classdef HEKA_Importer < handle
     %UNTITLED2 Summary of this class goes here
     %   Detailed explanation goes here
     
-    properties (access = public) %#ok<ATUNK>
-        recID
-        path = 'Z:\Christian\data\Patch_rawData'; %'C:\Users\ckeine\Downloads\'; % %
-        
-        hGUI
+    properties (Access = public)
+%         recID
+%         path = 'Z:\Christian\data\Patch_rawData'; %'C:\Users\ckeine\Downloads\'; % %
+        trees = [];
+%         hGUI
         opt
         RecTable
+        solutions = []
+        
+    end
+    
+    
+    properties (Access = private)
+        
+        
     end
     
     %%
     methods (Access = public)
         function obj = HEKA_Importer(filepath,varargin) %CONSTRUCTOR
-%             global u; if isempty(u); u=units; end
-%             Dirs = setgetDirs;
             
             P = inputParser;
             P.addRequired('filepath',@ischar)
@@ -56,19 +62,23 @@ classdef HEKA_Importer < handle
 %                 else
 %                     return
 %                 end
+        end
+    end
+    
+  methods (Static, Hidden=false)
+
+            function obj = GUI() % OPEN GUI TO SELECT RECORDING
+                
+             [file,path] = uigetfile({'*.dat','HEKA PATCHMASTER FILE'},'Select HEKA Patchmaster File to Import',...
+                 'MultiSelect','off');
+                
             end
-            
-            
+  end
             %% CREATE GRAPHICAL USER INTERFACE
                         
 %             obj.createGUI
             
-            
-            
-            
-            
-        end
-    
+
     methods (Access = public)
         
         %%

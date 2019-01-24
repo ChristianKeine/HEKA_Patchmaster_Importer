@@ -1066,28 +1066,28 @@ for ser=1:nseries
         % Now format for sigTOOL        
         
         % The channel header
-        hdr=scCreateChannelHeader();
-        hdr.channel=channelnumber;
-        hdr.title=tr_s(1).TrLabel;
-        hdr.source=dir(thisfile);
-        hdr.source.name=thisfile;
-        
-        hdr.Group.Number=grp;
-        hdr.Group.Label=tree{ser_row(ser),3}.SeLabel;
-        hdr.Group.SourceChannel=0;
-        s.hdr.Group.DateNum=datestr(now());
+%         hdr=scCreateChannelHeader();
+%         hdr.channel=channelnumber;
+%         hdr.title=tr_s(1).TrLabel;
+%         hdr.source=dir(thisfile);
+%         hdr.source.name=thisfile;
+%         
+%         hdr.Group.Number=grp;
+%         hdr.Group.Label=tree{ser_row(ser),3}.SeLabel;
+%         hdr.Group.SourceChannel=0;
+%         s.hdr.Group.DateNum=datestr(now());
         
         % Patch details
-        hdr.Patch.Type=patchType(tr_s(1).TrRecordingMode);
-        hdr.Patch.Em=tr_s(1).TrCellPotential; 
-        hdr.Patch.isLeak=bitget(tr_s(1).TrDataKind, 2);
-        if hdr.Patch.isLeak==1
-            hdr.Patch.isLeakSubtracted=false;
-        else
-            hdr.Patch.isLeakSubtracted=true;
-            hdr.Patch.isZeroAdjusted=true;
-        end
-        
+%         hdr.Patch.Type=patchType(tr_s(1).TrRecordingMode);
+%         hdr.Patch.Em=tr_s(1).TrCellPotential; 
+%         hdr.Patch.isLeak=bitget(tr_s(1).TrDataKind, 2);
+%         if hdr.Patch.isLeak==1
+%             hdr.Patch.isLeakSubtracted=false;
+%         else
+%             hdr.Patch.isLeakSubtracted=true;
+%             hdr.Patch.isZeroAdjusted=true;
+%         end
+%         
         % Temp
         temp=cell2mat({tree{sw_row(1:end-1), 4}});
         templist=cell2mat({temp.SwTemperature});
