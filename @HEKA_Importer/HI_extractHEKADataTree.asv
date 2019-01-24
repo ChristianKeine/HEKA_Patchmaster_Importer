@@ -141,6 +141,7 @@ nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
+
 Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
 Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
 Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
@@ -148,8 +149,7 @@ RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
 Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 
 % EXTRACT RECORDING TEMPERATURE FROM SERIES, LEVEL 4
-SweepStruct = [tree{recIDs+1,4}];
-Temperature = reshape([SweepStruct(:).SwTemperature],numel(SweepStruct),1);
+SweepStruct = [tree{recIDs+1,4]]
 
 %EXTRACT INFORMATION FROM TRACE, LEVEL 5
 TraceStruct = [tree{recIDs+2,5}];
@@ -174,8 +174,7 @@ RecTab = table(ExperimentNumber,...
     yUnit,...
     comment,...
     RecordingMode,...
-    Temperature,...
-    'VariableNames',{'Experiment','ExperimentName','Rec','Rs','Cm','nSweeps','Vhold','Rs_uncomp','RsFractionComp','Stimulus','xUnit','yUnit','comment','RecMode','Temperature'});
+    'VariableNames',{'Experiment','ExperimentName','Rec','Rs','Cm','nSweeps','Vhold','Rs_uncomp','RsFractionComp','Stimulus','xUnit','yUnit','comment','RecMode'});
 
 
 

@@ -32,12 +32,12 @@ classdef HEKA_Importer < handle
     
   methods (Static, Hidden=false)
 
-            function GUI() % OPEN GUI TO SELECT RECORDING
+            function obj = GUI() % OPEN GUI TO SELECT RECORDING
                 
              [file,path] = uigetfile({'*.dat','HEKA PATCHMASTER FILE'},'Select HEKA Patchmaster file to import',...
                  'MultiSelect','off');
               
-             HEKA_Importer(fullfile(path,file))
+             obj = HEKA_Importer(fullfile(path,file));
              
             end
   end
