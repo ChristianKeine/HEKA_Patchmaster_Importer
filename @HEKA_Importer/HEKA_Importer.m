@@ -43,7 +43,7 @@ classdef HEKA_Importer < handle
   end
 
 
-    methods (Access = private)
+    methods (Access = public)
         
 
         HI_loadHEKAFile(obj,varargin);
@@ -56,6 +56,20 @@ classdef HEKA_Importer < handle
 
     end
     
+        %% Hide some of the handle class member functions for ease of use.
+    methods (Hidden=true)
+        function notify(~)
+        end
+        function addlistener(~)
+        end
+        function findobj(~)
+        end
+        function findprop(~)
+        end
+        function listener(~)
+        end
+    
+    end
 end
 
 
