@@ -68,6 +68,8 @@ classdef HEKA_Importer < handle
         end
         function listener(~)
         end
+        function delete(~)
+        end
     
     end
 end
