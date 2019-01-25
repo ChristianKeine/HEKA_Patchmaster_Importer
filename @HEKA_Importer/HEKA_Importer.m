@@ -1,5 +1,5 @@
 classdef HEKA_Importer < handle
-    %% TODO: ADD EXPLANATION
+    %% TODO: ADD DESCRIPTION
     
     properties (Access = public)
 
