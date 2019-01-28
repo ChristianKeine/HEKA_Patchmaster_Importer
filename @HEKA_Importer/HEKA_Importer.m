@@ -3,7 +3,7 @@ classdef HEKA_Importer < handle
     
     properties (Access = public)
 
-        trees = []; % contains tre structure from Patchmaster files: dataTree, stimTree (stimulus parameters), and solTree (solutions)
+        trees = []; % contains tree structure from Patchmaster files: dataTree, stimTree (stimulus parameters), and solTree (solutions)
         opt
         RecTable % contains recordings in table with various parameters, e.g. Rs, Cm, nSweeps ect. 
         solutions = []
@@ -43,7 +43,7 @@ classdef HEKA_Importer < handle
   end
 
 
-    methods (Access = public)
+    methods (Access = private)
         
 
         HI_loadHEKAFile(obj,varargin);
