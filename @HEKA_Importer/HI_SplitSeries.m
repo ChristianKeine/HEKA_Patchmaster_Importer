@@ -1,7 +1,6 @@
 function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, varargin)
 
-
-% SplitSeries.m
+% HI_SplitSeries.m
 % This function takes the collapsed data set (dCollapse) and splits it by
 % group and series, assigning these as fields into the struct.
 % 
@@ -163,7 +162,6 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-%     currGr(regexp(currGr,'[\\,+]')) = '_';
     currGr = matlab.lang.makeValidName(currGr);
 
     structA.(currGr).file = saveName;
@@ -182,15 +180,3 @@ for iGr = 1:length(grLoc)
 end
 
 end
-% © 2018 GitHub, Inc.
-% Terms
-% Privacy
-% Security
-% Status
-% Help
-% Contact GitHub
-% API
-% Training
-% Shop
-% Blog
-% About

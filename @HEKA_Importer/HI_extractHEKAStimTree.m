@@ -1,8 +1,6 @@
 function HI_extractHEKAStimTree(obj,stimTree)
 
-% load('C:\Users\keineC\Documents\MATLAB\tree','tree')
-% global u, if isempty(u), u = units; end
-% ind = ~cellfun(@isempty,stimTree);
+% TODO: Add support for more complex stimuli, e.g. ramps, alternating etc.
 
 %1: Root
 %2 Series
