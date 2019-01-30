@@ -155,18 +155,6 @@ end
 % Now set pointer to the start of the data the data
 fseek(fh, start, 'bof');
 
-% NOW IMPORT
-
-% Set up MAT-file giving a 'kcl' extension
-% if nargin<2
-%     targetpath=fileparts(thisfile);
-% end
-
-% matfilename=scCreateKCLFile(thisfile, targetpath);
-% if isempty(matfilename)
-%     return
-% end
-
 
 % Get the group headers into a structure array
 ngroup=1;
@@ -178,28 +166,14 @@ for k=1:size(dataTree,1)
 end
 
 
-% Check compatibility
-
-
 % For each group
 channelnumber=1;
 matData = cell(size(grp_row));
 for grp=1:numel(grp_row)
-%             scProgressBar(grp/numel(grp_row), progbar, ...
-%             sprintf('Importing Group %d. Please wait....',grp));
-    % Import the data...
     [channelnumber, matData{grp}]=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row, channelnumber);
 end
 
-% FileSource.name='HEKA';
-% FileSource.header=tree;
-% save(matfilename, 'FileSource', '-v6', '-append');
 
-% sigTOOLVersion=scVersion('nodisplay');
-% save(matfilename,'sigTOOLVersion','-v6','-append');
-
-% delete(progbar);
-% return
 end
 
 %--------------------------------------------------------------------------
@@ -243,7 +217,7 @@ switch h.oSignature
         error('This legacy file format is not supported');
 end
 littleendianflag=h.oIsLittleEndian;
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -251,7 +225,6 @@ function [Tree, Counter]=getDataTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 [Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-return
 end
 
 %--------------------------------------------------------------------------
@@ -262,7 +235,7 @@ function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Posi
 for k=1:double(nchild)
     [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
 end
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -275,7 +248,6 @@ Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
 nchild=fread(fh, 1, 'int32=>int32');
 Position=ftell(fh);
-return
 end
 
 %--------------------------------------------------------------------------
@@ -297,7 +269,6 @@ switch Level
     otherwise
         error('Unexpected Level');
 end
-return
 end
 
 % The functions below return data as defined by the HEKA PatchMaster
@@ -320,7 +291,7 @@ p.RoFiller1=fread(fh, 1, 'int16=>int16');%         = 538; (* INT16 *)
 p.RoFiller2=fread(fh, 1, 'int32=>int32');%         = 540; (* INT32 *)
 p.RootRecSize= 544;
 p=orderfields(p);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -335,7 +306,7 @@ g.GrGroupCount=fread(fh, 1, 'int32=>int32');%         = 120; (* INT32 *)
 g.GrCRC=fread(fh, 1, 'int32=>int32');%                = 124; (* CARD32 *)
 g.GroupRecSize=128;%     (* = 16 * 8 *)
 g=orderfields(g);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -383,7 +354,7 @@ end
 s.SeScanParams=fread(fh, 96, 'uint8=>uint8');
 s.SeriesRecSize=1408;%      (* = 176 * 8 *)
 s=orderfields(s);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -409,7 +380,7 @@ sw.SwFiller2=fread(fh, 1, 'int32=>int32');%         = 152; (* INT32 *)
 sw.SwCRC=fread(fh, 1, 'int32=>int32');%                = 156; (* CARD32 *)
 sw.SweepRecSize         = 160;%      (* = 20 * 8 *)
 sw=orderfields(sw);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -477,7 +448,7 @@ tr.TrSECM_Z=fread(fh, 1, 'double=>double');%        = 400; (* LONGREAL *)
 tr.TraceRecSize=408;
 
 tr=orderfields(tr);
-return
+
 end
 
 %% LOADING SOLUTION TREE
@@ -486,7 +457,7 @@ function [Tree, Counter]=getSolutionTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 [Tree, Counter]=getSolutionTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -497,7 +468,7 @@ function [Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Lev
 for k=1:double(nchild)
     [Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
 end
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -510,7 +481,7 @@ Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
 nchild=fread(fh, 1, 'int32=>int32');
 Position=ftell(fh);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -529,7 +500,7 @@ switch Level
     otherwise
         error('Unexpected Level');
 end
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -542,7 +513,7 @@ p.RoCRC=fread(fh, 1, 'int32=>int32'); %        =  84; (* CARD32 *)
 p.RootSize = 88;%          =  88
 
 p=orderfields(p);
-return
+
 end
 
 
@@ -560,7 +531,7 @@ function s=getSolution(fh)
    s.SolutionSize=160;%      = 160
 
 s=orderfields(s);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -573,7 +544,7 @@ function c=getChemical(fh)
    c.ChemicalSize=40;%         =  40
    
 c=orderfields(c);
-return
+
 end
 
 
@@ -583,7 +554,7 @@ function [Tree, Counter]=getStimTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 [Tree, Counter]=getStimTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -594,7 +565,7 @@ function [Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level, 
 for k=1:double(nchild)
     [Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
 end
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -607,7 +578,7 @@ Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
 nchild=fread(fh, 1, 'int32=>int32');
 Position=ftell(fh);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -627,7 +598,7 @@ switch Level
     otherwise
         error('Unexpected Level');
 end
-return
+
 end
 
 % The functions below return data as defined by the HEKA PatchMaster
@@ -650,7 +621,7 @@ p.RoFiller2= fread(fh, 1, 'int32=>int32');%        = 576; (* INT32 *)
 p.RoCRC= fread(fh, 1, 'int32=>int32');%                = 580; (* CARD32 *)   
 p.RootRecSize= 584; %      (* = 73 * 8 *)
 p=orderfields(p);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -696,7 +667,7 @@ function s=getStimulation(fh)
    s.StimulationRecSize   = 280;%      (* = 35 * 8 *)
 
 s=orderfields(s);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -774,7 +745,7 @@ function c=getChannel(fh)
    c.chCRC=fread(fh, 1, 'int32=>int32');%                = 396; (* CARD32 *)
    c.ChannelRecSize       = 400;%     (* = 50 * 8 *)
 c=orderfields(c);
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -798,7 +769,7 @@ function ss=getStimSegment(fh)
    ss.seScanRate=fread(fh, 1, 'double=>double');%           =  72; (* LONGREAL *)
    ss.StimSegmentRecSize   =  80;%      (* = 10 * 8 *)
 ss=orderfields(ss);
-return
+
 end
 
 
@@ -822,7 +793,7 @@ L.loLockInMode=fread(fh, 1, 'uint8=>uint8') ;%         =  66; (* BYTE *)
 L.loCalMode=fread(fh, 1, 'uint8=>uint8') ;%            =  67; (* BYTE *)
 L.LockInParamsSize=96;
 fseek(fh, offset+L.LockInParamsSize, 'bof');
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -937,7 +908,7 @@ A.E9CalibDate=fread(fh, 2, 'double=>double');%          = 344; (* 16 = SizeCalib
 A.E9SelHold=fread(fh, 1, 'double=>double');%            = 360; (* LONGREAL *)
 A.AmplifierStateSize   = 400;
 fseek(fh, offset+A.AmplifierStateSize, 'bof');
-return
+
 end
 
 %--------------------------------------------------------------------------
@@ -961,9 +932,7 @@ ser_row(nseries+1)=grp_row(grp+1);
 dataoffsets=[];
 % Create the channels
 for ser=1:nseries
-    
-%     scProgressBar(ser/nseries, progbar, ...
-%             sprintf('Importing Channel %d', channelnumber));
+   
 %     
     [sw_s, sw_row, nsweeps]=getSweepHeaders(tree, ser_row, ser); 
     
@@ -1008,10 +977,8 @@ for ser=1:nseries
             dataoffsets(end+1)=tree{tr_row(k,tr),5}.TrData; %#ok<AGROW>
             % Read the data
             if ~INTERLEAVE_SUPPORTED || tree{tr_row(k,tr),5}.TrInterleaveSize==0 
-%                 try
                 [data(1:tree{tr_row(k,tr),5}.TrDataPoints, tr)]=...
                     fread(fh, double(tree{tr_row(k,tr),5}.TrDataPoints), readfmt);
-%                 catch ME, end
                 else
                 offset=1;
                 nelements= double(tree{tr_row(k,tr),5}.TrInterleaveSize/nbytes);
@@ -1033,64 +1000,12 @@ for ser=1:nseries
             data(:,col)=data(:,col)*tr_s(col).TrDataScaler+tr_s(col).TrZeroData;
         end
         
-        % Get the data range....
-%         [sc prefix]=LocalDataScaling(data);        
-        %... and scale the data
-%         data=data*sc;
-        matData{channelnumber}= data;
+
+        matData{channelnumber} = data;
         
-        % Adjust the units string accordingly
-%         switch tr_s(1).TrYUnit
-%             case {'V' 'A'}
-%                 hdr.adc.Units=[prefix tr_s(1).TrYUnit];
-%             otherwise
-%                 hdr.adc.Units=[tr_s(1).TrYUnit '*' sprintf('%g',sc)];
-%         end
-        
-        if isConstantScaling
-            [res intflag]=LocalGetRes(fmt);
-            castfcn=str2func(fmt);
-        else
-            highest=LocalFormatToString(max(cell2mat({tr_s.TrDataFormat})));
-            [res intflag]=LocalGetRes(highest);
-            castfcn=str2func(highest);
-        end
-        
-%         if intflag
-%             % Set scaling/offset and cast to integer type
-%             hdr.adc.Scale=(max(data(:))-min(data(:)))/res;
-%             hdr.adc.DC=(min(data(:))+max(data(:)))/2;
-%             imp.adc=castfcn((data-hdr.adc.DC)/hdr.adc.Scale);
-%         else
-%             % Preserve as floating point
-%             hdr.adc.Scale=1;
-%             hdr.adc.DC=0;
-%             imp.adc=castfcn(data);
-%         end
-        
-%         hdr.adc.YLim=[double(min(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC...
-%             double(max(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC];
-        
-        % Timestamps
-%         StartTimes=cell2mat({sw_s.SwTime})+cell2mat({tr_s.TrTimeOffset});
-%         imp.tim=(StartTimes-min(StartTimes))';
-%         if any(cell2mat({tr_s.TrXStart})+cell2mat({tr_s.TrXStart}));
-%             imp.tim(:,2)=imp.tim(:,1)+cell2mat({tr_s.TrXStart}');
-%         end
-%         imp.tim(:,end+1)=imp.tim(:,1)+(double(cell2mat({tr_s.TrDataPoints})-1).*cell2mat({tr_s.TrXInterval}))';
-%         
-        % Scale and round off to nanoseconds
-%         imp.tim=round(imp.tim*10^9);
-%         hdr.tim.Class='tstamp';
-%         hdr.tim.Scale=1e-9;
-%         hdr.tim.Shift=0;
-%         hdr.tim.Func=[];
-%         hdr.tim.Units=1;
-%         
-%         imp.mrk=[];
-        
-%         scSaveImportedChannel(matfilename, channelnumber, imp, hdr);
-         clear('imp','hdr','data');
+         
+
+        clear('imp','hdr','data');
         
         channelnumber=channelnumber+1;
     end
@@ -1189,35 +1104,6 @@ end
 return
 end
 
-%--------------------------------------------------------------------------
-function [sc prefix]=LocalDataScaling(data)
-%--------------------------------------------------------------------------
-range=max(data(:)-min(data(:)));
-% if range<10^-9
-%     % Scale to pico-units
-%     sc=10^12;
-%     prefix='p';
-% elseif range<10^-6
-%     % Nano
-%     sc=10^9;
-%     prefix='n';
-% elseif range<10^-3
-%     % Micro
-%     sc=10^6;
-%     prefix='µ';
-% elseif range<1
-%     % Milli
-%     sc=10^3;
-%     prefix='m';
-% else
-%     % Stet
-%     sc=1;
-%     prefix='';
-% end
-sc=1;
-prefix = '';
-return
-end
 
 %--------------------------------------------------------------------------
 function [tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(tree, tr_row, k)
