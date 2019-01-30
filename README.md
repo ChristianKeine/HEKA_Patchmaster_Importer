@@ -5,7 +5,7 @@ The core functionality is based on the HEKA importer from sigTool (https://doi.o
 
 This stand-alone importer works independent of sigTool and will additionally extract the stimulus (reconstructed from the pgf) and solutions (when solution base was active during recording). 
 
-The recordings will be sorted into a table together with various parameters such as Rs, Cm, Vhold. 
+The recordings will be sorted into a table together with various parameters e.g series resistance (Rs), cell membrane capacitance (Cm), holding potential (Vhold), stimulus and solutions. 
 
  ## How to use:
 **Input:**
