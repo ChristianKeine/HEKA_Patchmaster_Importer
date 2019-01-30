@@ -71,7 +71,7 @@ traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
-channels = cell(size(grLoc));
+% channels = cell(size(grLoc));
 
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
@@ -125,7 +125,7 @@ for iGr = 1:length(grLoc)
                 isTrace = 0;
             else
                 nChan = nChan + 1;
-                chanType{nChan} = dataTree{seLoc(serTot)+1+nChan,5}.TrLabel;
+                chanType{nChan} = matlab.lang.makeValidName(dataTree{seLoc(serTot)+1+nChan,5}.TrLabel);
                 chanUnit{nChan} = dataTree{seLoc(serTot)+1+nChan,5}.TrYUnit;
             end
         end
@@ -144,7 +144,7 @@ for iGr = 1:length(grLoc)
         chanUnit = chanUnit(1:nChan,:);
        
         for iChan = 1:nChan
-            grpData{iSer}(iChan) = data(traceTot);
+            grpData{iSer}.(chanType{(iChan)}) = data{traceTot};
             grpType{iSer}(iChan) = chanType(iChan);
             grpUnit(:,iSer) = chanUnit;
             traceTot = traceTot+1;
@@ -187,19 +187,21 @@ for iGr = 1:length(grLoc)
     addEPS = @(x) x+randn(size(x))*eps;   
     dataT = cell(nSer,1);
     for iSer=1:nSer   
-     dataT{iSer,:} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
+        for iChan = reshape(fieldnames(ephysData.(currGr).data{iSer}),1,numel(fieldnames(ephysData.(currGr).data{iSer})))
+        ephysData.(currGr).data{iSer}.(iChan{:}) = addEPS(ephysData.(currGr).data{iSer}.(iChan{:}));
+        end
+        dataT{iSer,:} = ephysData.(currGr).data{iSer};
     end
     
      dataRaw{iGr,:} = dataT;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-     channels{iGr,:} = grpType;
    
 end
 
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channels = vertcat(channels{:});
+%     obj.RecTable.channels = vertcat(channels{:});
 
     obj.RecTable = struct2table(obj.RecTable);
 
