@@ -68,6 +68,11 @@ end
 % a cell array of that length to hold data from that group
 serTot = 1;
 traceTot = 1;
+    
+dataRaw = cell(size(grLoc));
+SR = cell(size(grLoc));
+channels = cell(size(grLoc));
+
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
     currGr = matlab.lang.makeValidName(dataTree{grLoc(iGr),2}.GrLabel);
@@ -166,7 +171,6 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-
     ephysData.(currGr).data = grpData;
     ephysData.(currGr).protocols = grpProt;
     ephysData.(currGr).channel = grpType;
@@ -181,26 +185,22 @@ for iGr = 1:length(grLoc)
 
     %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
     addEPS = @(x) x+randn(size(x))*eps;   
-    
-    for iSer=1:nSer
+    dataT = cell(nSer,1);
+    for iSer=1:nSer   
      dataT{iSer,:} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
     end
     
-%     dataRaw{iExp,:} = cellfun(addEPS,[ephysData.(f{iExp}).data{:}],'UniformOutput',false);
-%     dataRaw{iExp,:} = dataT;
-%     SR{iExp,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-
+     dataRaw{iGr,:} = dataT;
+     SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
+     channels{iGr,:} = grpType;
    
 end
 
 
-    dataRaw = cell(size(f));
-    SR = cell(size(f));
-    
-
-
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
+    obj.RecTable.channels = vertcat(channels{:});
+
     obj.RecTable = struct2table(obj.RecTable);
 
 
