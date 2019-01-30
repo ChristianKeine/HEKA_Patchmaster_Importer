@@ -159,9 +159,7 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-    %currGr = matlab.lang.makeValidName(currGr);
 
-%     structA.(currGr).file = saveName;
     ephysData.(currGr).data = grpData;
     ephysData.(currGr).protocols = grpProt;
     ephysData.(currGr).channel = grpType;
@@ -190,8 +188,7 @@ end
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
     
-    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
-    
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
     addEPS = @(x) x+randn(size(x))*eps;    
     obj.RecTable.dataRaw = cellfun(addEPS,obj.RecTable.dataRaw,'UniformOutput',false);
 

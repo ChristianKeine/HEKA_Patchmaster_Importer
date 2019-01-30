@@ -17,17 +17,6 @@ function [dataTree, matData, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
 % unbundled, they must all be in the same folder.
 %
 %
-% Notes:
-% Timestamps from the data file are rounded to the nearest nanonsecond for
-% sigTOOL.
-% Waveform data are scaled to SI units of A or V in HEKA files. For
-% sigTOOL, they are scaled to pA, pV, nA, nV... etc as appropriate given
-% the data range.
-%
-% The HEKA DAT format is versatile and not all combinations of settings may
-% have been anticipated here. If you encounter problems importing files
-% please report the bug and send a sample DAT file using Help->Bug Report
-% in the sigTOOL GUI
 %
 % Details of the HEKA file format are available from
 %       ftp://server.hekahome.de/pub/FileFormat/Patchmasterv9/
