@@ -22,7 +22,7 @@ for iExp = 1:nExperiments
    Rt{iExp} = ImportRecordings(tree,allExp(iExp),nextExp,iExp); 
 end
 
-obj.RecTable = vertcat(Rt{:});
+obj.RecTable = [vertcat(Rt{:}),obj.RecTable];
 
 
 

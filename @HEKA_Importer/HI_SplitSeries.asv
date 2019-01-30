@@ -1,4 +1,4 @@
-function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, stimTree, varargin)
+function obj = HI_SplitSeries(obj,data, dataTree,stimTree, varargin)
 
 % HI_SplitSeries.m
 % This function takes the collapsed data set (dCollapse) and splits it by
@@ -38,16 +38,14 @@ function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, stimT
 % Created by Sammy Katta on 27 May 2014.
 
 
-p = inputParser;
-p.addRequired('dataTree');
-p.addRequired('data');
-p.addRequired('structA');
-p.addRequired('saveName');
-p.addRequired('stimTree');
+P = inputParser;
+P.addRequired('data');
+P.addRequired('dataTree');
+P.addRequired('stimTree');
 
-p.parse(dataTree, data, structA, saveName, stimTree, varargin{:});
+P.parse(data,dataTree,stimTree,varargin{:});
 
-stimTree = p.Results.stimTree;
+stimTree = P.Results.stimTree;
 
 % Find which rows in tree contain group, series, and sweep metadata
 grLoc = find(~cellfun('isempty',dataTree(:,2)));
@@ -87,9 +85,9 @@ for iGr = 1:length(grLoc)
     % Initialize cell array with space for 6 channels worth of data from a 
     % given series. For series where fewer than 6 channels are recorded, 
     % the cells in the last few rows will remain empty.
-    grpData = cell(6,nSer);
+    grpData = cell(nSer,1);
     grpProt = cell(1,nSer);
-    grpType = cell(6,nSer);
+    grpType = cell(nSer,1);
     grpUnit = cell(6,nSer);
     grpFs = cell(1,nSer);
     grpTimes = cell(1,nSer);
@@ -133,9 +131,16 @@ for iGr = 1:length(grLoc)
         % another, i.e., if the real series 5 recorded both current and
         % voltage, data(5) will contain the current and data(6) will 
         % contain the voltage.
+        
+        % STRIP DOWN TO ACTUAL NUMBER OF CHANNELS
+%         grpType = grpType(1:nChan,:);
+        grpUnit = grpUnit(1:nChan,:);
+        chanType = chanType(1:nChan,:);
+        chanUnit = chanUnit(1:nChan,:);
+       
         for iChan = 1:nChan
-            grpData(iChan,iSer) = data(traceTot);
-            grpType(:,iSer) = chanType;
+            grpData{iSer}(iChan) = data(traceTot);
+            grpType{iSer}(iChan) = chanType(iChan);
             grpUnit(:,iSer) = chanUnit;
             traceTot = traceTot+1;
         end
@@ -161,21 +166,44 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-    %currGr = matlab.lang.makeValidName(currGr);
 
-    structA.(currGr).file = saveName;
-    structA.(currGr).data = grpData;
-    structA.(currGr).protocols = grpProt;
-    structA.(currGr).channel = grpType;
-    structA.(currGr).dataunit = grpUnit;
-    structA.(currGr).samplingFreq = grpFs;
-    structA.(currGr).startTimes = grpTimes;
-    structA.(currGr).ccHold = grpHolds;
+    ephysData.(currGr).data = grpData;
+    ephysData.(currGr).protocols = grpProt;
+    ephysData.(currGr).channel = grpType;
+    ephysData.(currGr).dataunit = grpUnit;
+    ephysData.(currGr).samplingFreq = grpFs;
+    ephysData.(currGr).startTimes = grpTimes;
+    ephysData.(currGr).ccHold = grpHolds;
     
     if ~isempty(stimTree)
-        structA.(currGr).stimTree = grpStim;
+        ephysData.(currGr).stimTree = grpStim;
     end
 
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
+    addEPS = @(x) x+randn(size(x))*eps;   
+    
+    for iSer=1:nSer
+     dataT{iSer,:} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
+    end
+%     dataRaw{iExp,:} = cellfun(addEPS,[ephysData.(f{iExp}).data{:}],'UniformOutput',false);
+    dataRaw{iExp,:} = dataT;
+    SR{iExp,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(f{iExp}).samplingFreq{:}]),1); 
+
+   
 end
+
+
+    dataRaw = cell(size(f));
+    SR = cell(size(f));
+    
+
+
+    obj.RecTable.dataRaw = vertcat(dataRaw{:});
+    obj.RecTable.SR = vertcat(SR{:});
+    obj.RecTable = struct2table(obj.RecTable);
+
+
+
+
 
 end

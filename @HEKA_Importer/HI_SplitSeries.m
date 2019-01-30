@@ -85,9 +85,9 @@ for iGr = 1:length(grLoc)
     % Initialize cell array with space for 6 channels worth of data from a 
     % given series. For series where fewer than 6 channels are recorded, 
     % the cells in the last few rows will remain empty.
-    grpData = cell(6,nSer);
+    grpData = cell(nSer,1);
     grpProt = cell(1,nSer);
-    grpType = cell(6,nSer);
+    grpType = cell(nSer,1);
     grpUnit = cell(6,nSer);
     grpFs = cell(1,nSer);
     grpTimes = cell(1,nSer);
@@ -131,9 +131,16 @@ for iGr = 1:length(grLoc)
         % another, i.e., if the real series 5 recorded both current and
         % voltage, data(5) will contain the current and data(6) will 
         % contain the voltage.
+        
+        % STRIP DOWN TO ACTUAL NUMBER OF CHANNELS
+%         grpType = grpType(1:nChan,:);
+        grpUnit = grpUnit(1:nChan,:);
+        chanType = chanType(1:nChan,:);
+        chanUnit = chanUnit(1:nChan,:);
+       
         for iChan = 1:nChan
-            grpData(iChan,iSer) = data(traceTot);
-            grpType(:,iSer) = chanType;
+            grpData{iSer}(iChan) = data(traceTot);
+            grpType{iSer}(iChan) = chanType(iChan);
             grpUnit(:,iSer) = chanUnit;
             traceTot = traceTot+1;
         end
@@ -172,25 +179,29 @@ for iGr = 1:length(grLoc)
         ephysData.(currGr).stimTree = grpStim;
     end
 
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
+    addEPS = @(x) x+randn(size(x))*eps;   
+    
+    for iSer=1:nSer
+     dataT{iSer,:} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
+    end
+    
+%     dataRaw{iExp,:} = cellfun(addEPS,[ephysData.(f{iExp}).data{:}],'UniformOutput',false);
+%     dataRaw{iExp,:} = dataT;
+%     SR{iExp,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
+
+   
 end
 
-    f = fields(ephysData);
 
     dataRaw = cell(size(f));
     SR = cell(size(f));
     
-    
-for iExp = 1:numel(f)
-    dataRaw{iExp,:} = reshape(ephysData.(f{iExp}).data(1,:),numel(ephysData.(f{iExp}).data(1,:)),1);
-    SR{iExp,:} =  reshape([ephysData.(f{iExp}).samplingFreq{:}], numel([ephysData.(f{iExp}).samplingFreq{:}]),1); 
-end
+
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    
-    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
-    addEPS = @(x) x+randn(size(x))*eps;    
-    obj.RecTable.dataRaw = cellfun(addEPS,obj.RecTable.dataRaw,'UniformOutput',false);
+    obj.RecTable = struct2table(obj.RecTable);
 
 
 
