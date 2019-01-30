@@ -162,7 +162,7 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-    %currGr = matlab.lang.makeValidName(currGr);
+    currGr = matlab.lang.makeValidName(currGr);
 
     structA.(currGr).file = saveName;
     structA.(currGr).data = grpData;
