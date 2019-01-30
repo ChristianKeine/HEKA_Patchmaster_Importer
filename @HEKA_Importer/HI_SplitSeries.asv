@@ -1,4 +1,4 @@
-function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, varargin)
+function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, stimTree, varargin)
 
 % HI_SplitSeries.m
 % This function takes the collapsed data set (dCollapse) and splits it by
@@ -43,10 +43,9 @@ p.addRequired('dataTree');
 p.addRequired('data');
 p.addRequired('structA');
 p.addRequired('saveName');
+p.addRequired('stimTree');
 
-p.addOptional('stimTree', cell(0), @(x) iscell(x));
-
-p.parse(dataTree, data, structA, saveName, varargin{:});
+p.parse(dataTree, data, structA, saveName, stimTree, varargin{:});
 
 stimTree = p.Results.stimTree;
 
@@ -162,7 +161,7 @@ for iGr = 1:length(grLoc)
     end
     
     % Save data to the appropriate group in the nested output struct.
-    currGr = matlab.lang.makeValidName(currGr);
+    %currGr = matlab.lang.makeValidName(currGr);
 
     structA.(currGr).file = saveName;
     structA.(currGr).data = grpData;

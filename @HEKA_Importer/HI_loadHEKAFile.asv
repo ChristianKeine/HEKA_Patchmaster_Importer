@@ -11,7 +11,7 @@ end
 %     ephysData = struct();
     
     %% CALL IMPORT FUNCTION
-    [dataTree, data, stimTree, solTree] = obj.HI_ImportHEKAtoMat;
+    [tree, data,stimTree, solTree] = obj.HI_ImportHEKAtoMat;
     
     for i = length(data):-1:1
         dCollapse(1:length(data{i}))= data{i};
@@ -23,10 +23,11 @@ end
     % Split the data into series by recording name, etc. and assign into
     % the final data structure
     
-    obj.HI_SplitSeries(dCollapse,dataTree,stimTree);
+    % TODO: DOUBLE CHECK FOR SAVE OPTIONS
+    obj.HI_SplitSeries(dCollapse,tree,stimTree);
     
     
-    obj.HI_extractHEKADataTree(dataTree);
+    obj.HI_extractHEKADataTree(tree);
     obj.HI_extractHEKAStimTree(stimTree);
     obj.HI_extractHEKASolutionTree(solTree);
 
@@ -34,7 +35,7 @@ end
 
     
 
-    obj.trees = struct('dataTree',{dataTree},'stimTree',{stimTree},'solutionTree',{solTree});
+    obj.trees = struct('dataTree',{tree},'stimTree',{stimTree},'solutionTree',{solTree});
 
     
 end

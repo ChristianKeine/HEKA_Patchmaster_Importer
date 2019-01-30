@@ -1,4 +1,4 @@
-function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, varargin)
+function obj = HI_SplitSeries(obj,data, dataTree,stimTree, varargin)
 
 % HI_SplitSeries.m
 % This function takes the collapsed data set (dCollapse) and splits it by
@@ -38,17 +38,14 @@ function [structA] = HI_SplitSeries(obj,dataTree, data, structA, saveName, varar
 % Created by Sammy Katta on 27 May 2014.
 
 
-p = inputParser;
-p.addRequired('dataTree');
-p.addRequired('data');
-p.addRequired('structA');
-p.addRequired('saveName');
+P = inputParser;
+P.addRequired('data');
+P.addRequired('dataTree');
+P.addRequired('stimTree');
 
-p.addOptional('stimTree', cell(0), @(x) iscell(x));
+P.parse(data,dataTree,stimTree,varargin{:});
 
-p.parse(dataTree, data, structA, saveName, varargin{:});
-
-stimTree = p.Results.stimTree;
+stimTree = P.Results.stimTree;
 
 % Find which rows in tree contain group, series, and sweep metadata
 grLoc = find(~cellfun('isempty',dataTree(:,2)));
@@ -164,19 +161,42 @@ for iGr = 1:length(grLoc)
     % Save data to the appropriate group in the nested output struct.
     %currGr = matlab.lang.makeValidName(currGr);
 
-    structA.(currGr).file = saveName;
-    structA.(currGr).data = grpData;
-    structA.(currGr).protocols = grpProt;
-    structA.(currGr).channel = grpType;
-    structA.(currGr).dataunit = grpUnit;
-    structA.(currGr).samplingFreq = grpFs;
-    structA.(currGr).startTimes = grpTimes;
-    structA.(currGr).ccHold = grpHolds;
+%     structA.(currGr).file = saveName;
+    ephysData.(currGr).data = grpData;
+    ephysData.(currGr).protocols = grpProt;
+    ephysData.(currGr).channel = grpType;
+    ephysData.(currGr).dataunit = grpUnit;
+    ephysData.(currGr).samplingFreq = grpFs;
+    ephysData.(currGr).startTimes = grpTimes;
+    ephysData.(currGr).ccHold = grpHolds;
     
     if ~isempty(stimTree)
-        structA.(currGr).stimTree = grpStim;
+        ephysData.(currGr).stimTree = grpStim;
     end
 
 end
+
+    f = fields(ephysData);
+
+    dataRaw = cell(size(f));
+    SR = cell(size(f));
+    
+    
+for iExp = 1:numel(f)
+    dataRaw{iExp,:} = reshape(ephysData.(f{iExp}).data(1,:),numel(ephysData.(f{iExp}).data(1,:)),1);
+    SR{iExp,:} =  reshape([ephysData.(f{iExp}).samplingFreq{:}], numel([ephysData.(f{iExp}).samplingFreq{:}]),1); 
+end
+
+    obj.RecTable.dataRaw = vertcat(dataRaw{:});
+    obj.RecTable.SR = vertcat(SR{:});
+    
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION
+    
+    addEPS = @(x) x+randn(size(x))*eps;    
+    obj.RecTable.dataRaw = cellfun(addEPS,obj.RecTable.dataRaw,'UniformOutput',false);
+
+
+
+
 
 end

@@ -90,7 +90,7 @@ Sizes=fread(fh, double(Levels), 'int32=>int32');
 
 % Get the data tree form the pulse file
 Position=ftell(fh);
-dataTree=getTree(fh, Sizes, Position);
+dataTree=getDataTree(fh, Sizes, Position);
 
 %% GET STIMULUS TREE FROM PGF FILE
 if isBundled
@@ -155,18 +155,6 @@ end
 % Now set pointer to the start of the data the data
 fseek(fh, start, 'bof');
 
-% NOW IMPORT
-
-% Set up MAT-file giving a 'kcl' extension
-% if nargin<2
-%     targetpath=fileparts(thisfile);
-% end
-
-% matfilename=scCreateKCLFile(thisfile, targetpath);
-% if isempty(matfilename)
-%     return
-% end
-
 
 % Get the group headers into a structure array
 ngroup=1;
@@ -178,28 +166,14 @@ for k=1:size(dataTree,1)
 end
 
 
-% Check compatibility
-
-
 % For each group
 channelnumber=1;
 matData = cell(size(grp_row));
 for grp=1:numel(grp_row)
-%             scProgressBar(grp/numel(grp_row), progbar, ...
-%             sprintf('Importing Group %d. Please wait....',grp));
-    % Import the data...
     [channelnumber, matData{grp}]=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row, channelnumber);
 end
 
-% FileSource.name='HEKA';
-% FileSource.header=tree;
-% save(matfilename, 'FileSource', '-v6', '-append');
 
-% sigTOOLVersion=scVersion('nodisplay');
-% save(matfilename,'sigTOOLVersion','-v6','-append');
-
-% delete(progbar);
-% return
 end
 
 %--------------------------------------------------------------------------
@@ -247,7 +221,7 @@ return
 end
 
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getTree(fh, Sizes, Position)
+function [Tree, Counter]=getDataTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 [Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0);
@@ -480,6 +454,7 @@ tr=orderfields(tr);
 return
 end
 
+%% LOADING SOLUTION TREE
 %--------------------------------------------------------------------------
 function [Tree, Counter]=getSolutionTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
@@ -557,34 +532,6 @@ function s=getSolution(fh)
    s.soOsmol=fread(fh, 1, 'real*4=>double'); %152; (* REAL *)
    s.SoCRC=fread(fh, 1, 'int32=>int32') ;%     = 156; (* CARD32 *)
    s.SolutionSize=160;%      = 160
-%    s.stLeakDelay=fread(fh, 1, 'double=>double') ;%          = 128; (* LONGREAL *)
-%    s.stFilterFactor=fread(fh, 1, 'double=>double') ;%       = 136; (* LONGREAL *)
-%    s.stNumberSweeps=fread(fh, 1, 'int32=>int32');%        = 144; (* INT32 *)
-%    s.stNumberLeaks=fread(fh, 1, 'int32=>int32');%         = 148; (* INT32 *)
-%    s.stNumberAverages=fread(fh, 1, 'int32=>int32');%      = 152; (* INT32 *)
-%    s.stActualAdcChannels=fread(fh, 1, 'int32=>int32');%   = 156; (* INT32 *)
-%    s.stActualDacChannels=fread(fh, 1, 'int32=>int32');%   = 160; (* INT32 *)
-%    s.stExtTrigger=fread(fh, 1, 'uint8=>uint8');%          = 164; (* BYTE *)
-%    s.stNoStartWait=fread(fh, 1, 'uint8=>logical');%        = 165; (* BOOLEAN *)
-%    s.stUseScanRates=fread(fh, 1, 'uint8=>logical');%       = 166; (* BOOLEAN *)
-%    s.stNoContAq=fread(fh, 1, 'uint8=>logical');%           = 167; (* BOOLEAN *)
-%    s.stHasLockIn=fread(fh, 1, 'uint8=>logical');%          = 168; (* BOOLEAN *)
-%       s.stOldStartMacKind=fread(fh, 1, 'uint8=>char');% = 169; (* CHAR *)
-%       s.stOldEndMacKind=fread(fh, 1, 'uint8=>logical');%   = 170; (* BOOLEAN *)
-%    s.stAutoRange=fread(fh, 1, 'uint8=>uint8');%          = 171; (* BYTE *)
-%    s.stBreakNext=fread(fh, 1, 'uint8=>logical');%          = 172; (* BOOLEAN *)
-%    s.stIsExpanded=fread(fh, 1, 'uint8=>logical');%         = 173; (* BOOLEAN *)
-%    s.stLeakCompMode=fread(fh, 1, 'uint8=>logical');%       = 174; (* BOOLEAN *)
-%    s.stHasChirp=fread(fh, 1, 'uint8=>logical');%           = 175; (* BOOLEAN *)
-%       s.stOldStartMacro=deblank(fread(fh, 32, 'uint8=>char')');%   = 176; (* String32Type *)
-%       s.stOldEndMacro=deblank(fread(fh, 32, 'uint8=>char')');%     = 208; (* String32Type *)
-%    s.sIsGapFree=fread(fh, 1, 'uint8=>logical');%           = 240; (* BOOLEAN *)
-%    s.sHandledExternally=fread(fh, 1, 'uint8=>logical');%   = 241; (* BOOLEAN *)
-%       s.stFiller1=fread(fh, 1, 'uint8=>logical');%         = 242; (* BOOLEAN *)
-%       s.stFiller2=fread(fh, 1, 'uint8=>logical');%         = 243; (* BOOLEAN *)
-%    s.stCRC=fread(fh, 1, 'int32=>int32'); %                = 244; (* CARD32 *)
-%    s.stTag=deblank(fread(fh, 32, 'uint8=>char')');%                = 248; (* String32Type *)
-%    s.StimulationRecSize   = 280;%      (* = 35 * 8 *)
 
 s=orderfields(s);
 return
@@ -604,7 +551,7 @@ return
 end
 
 
-
+%% GET STIMULUS TREE
 %--------------------------------------------------------------------------
 function [Tree, Counter]=getStimTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------
@@ -830,13 +777,7 @@ end
 
 
 
-
-
-
-
-
-
-
+%% GET AMPLIFIER DATA
 %--------------------------------------------------------------------------
 function L=getSeLockInParams(fh)
 %--------------------------------------------------------------------------
@@ -994,9 +935,7 @@ ser_row(nseries+1)=grp_row(grp+1);
 dataoffsets=[];
 % Create the channels
 for ser=1:nseries
-    
-%     scProgressBar(ser/nseries, progbar, ...
-%             sprintf('Importing Channel %d', channelnumber));
+   
 %     
     [sw_s, sw_row, nsweeps]=getSweepHeaders(tree, ser_row, ser); 
     
@@ -1060,148 +999,27 @@ for ser=1:nseries
         end
         
         
-        % Now format for sigTOOL        
-        
-        % The channel header
-%         hdr=scCreateChannelHeader();
-%         hdr.channel=channelnumber;
-%         hdr.title=tr_s(1).TrLabel;
-%         hdr.source=dir(thisfile);
-%         hdr.source.name=thisfile;
-%         
-%         hdr.Group.Number=grp;
-%         hdr.Group.Label=tree{ser_row(ser),3}.SeLabel;
-%         hdr.Group.SourceChannel=0;
-%         s.hdr.Group.DateNum=datestr(now());
-        
-        % Patch details
-%         hdr.Patch.Type=patchType(tr_s(1).TrRecordingMode);
-%         hdr.Patch.Em=tr_s(1).TrCellPotential; 
-%         hdr.Patch.isLeak=bitget(tr_s(1).TrDataKind, 2);
-%         if hdr.Patch.isLeak==1
-%             hdr.Patch.isLeakSubtracted=false;
-%         else
-%             hdr.Patch.isLeakSubtracted=true;
-%             hdr.Patch.isZeroAdjusted=true;
-%         end
-%         
-        % Temp
-%         temp=cell2mat({tree{sw_row(1:end-1), 4}});
-%         templist=cell2mat({temp.SwTemperature});
-%         if numel(unique(templist==1))
-%             hdr.Environment.Temperature=tree{sw_row(1), 4}.SwTemperature;
-%         else
-%             hdr.Environment.Temperature
-%         end
-%         
-%         if size(data,2)==1
-%             hdr.Channeltype='Continuous Waveform';
-%         elseif isFramed
-%             hdr.Channeltype='Framed Waveform';
-%         else
-%             hdr.Channeltype='Episodic Waveform';
-%         end
-        
-        % The waveform data
-        % Continuous/frame based/uneven epochs
-%         if size(data, 2)==1
-%             hdr.channeltype='Continuous Waveform';
-%             hdr.adc.Labels={'Time'};
-%         else
-%             if isFramed
-%                 hdr.channeltype='Framed Waveform';
-%                 hdr.adc.Labels={'Time' 'Frame'};
-%             else
-%                 hdr.channeltype='Episodic Waveform';
-%                 hdr.adc.Labels={'Time' 'Epoch'};
-%             end
-%         end
-%         hdr.adc.TargetClass='adcarray';
-%         hdr.adc.Npoints=double(cell2mat({tr_s.TrDataPoints}));
-        
-        % Set the sample interval - always in seconds for sigTOOL
-        % 17.04.10 Ignore any trailing characters
-%         if isConstantScaling && isConstantFormat
-%             % Fix added 28.11.2011 - may be 1 char only
-%             if numel(tr_s(1).TrXUnit)<2
-%                 tr_s(1).TrXUnit(2)=' ';
-%             end
-%             switch deblank(tr_s(1).TrXUnit(1:2))% Must be constant or error thrown above
-%                 case 's'
-%                     tsc=1e6;
-%                 case 'ms'
-%                     tsc=1e3;
-%                 case 'µs'
-%                     tsc=1;
-%                 otherwise
-%                     error('Unsupported time units');
-%             end
-%             hdr.adc.SampleInterval=[tr_s(1).TrXInterval*tsc 1/tsc];
-%         end
-        
         % Now scale the data to real world units
         % Note we also apply zero adjustment
         for col=1:size(data,2)
             data(:,col)=data(:,col)*tr_s(col).TrDataScaler+tr_s(col).TrZeroData;
         end
         
-        % Get the data range....
-%         [sc prefix]=LocalDataScaling(data);        
-        %... and scale the data
-%         data=data*sc;
-        matData{channelnumber}= data;
+
+        matData{channelnumber} = data;
         
-        % Adjust the units string accordingly
-%         switch tr_s(1).TrYUnit
-%             case {'V' 'A'}
-%                 hdr.adc.Units=[prefix tr_s(1).TrYUnit];
-%             otherwise
-%                 hdr.adc.Units=[tr_s(1).TrYUnit '*' sprintf('%g',sc)];
-%         end
-        
-        if isConstantScaling
-            [res intflag]=LocalGetRes(fmt);
-            castfcn=str2func(fmt);
-        else
-            highest=LocalFormatToString(max(cell2mat({tr_s.TrDataFormat})));
-            [res intflag]=LocalGetRes(highest);
-            castfcn=str2func(highest);
-        end
-        
-%         if intflag
-%             % Set scaling/offset and cast to integer type
-%             hdr.adc.Scale=(max(data(:))-min(data(:)))/res;
-%             hdr.adc.DC=(min(data(:))+max(data(:)))/2;
-%             imp.adc=castfcn((data-hdr.adc.DC)/hdr.adc.Scale);
+       
+%         
+%         if isConstantScaling
+%             [res intflag]=LocalGetRes(fmt);
+%             castfcn=str2func(fmt);
 %         else
-%             % Preserve as floating point
-%             hdr.adc.Scale=1;
-%             hdr.adc.DC=0;
-%             imp.adc=castfcn(data);
+%             highest=LocalFormatToString(max(cell2mat({tr_s.TrDataFormat})));
+%             [res intflag]=LocalGetRes(highest);
+%             castfcn=str2func(highest);
 %         end
         
-%         hdr.adc.YLim=[double(min(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC...
-%             double(max(imp.adc(:)))*hdr.adc.Scale+hdr.adc.DC];
-        
-        % Timestamps
-%         StartTimes=cell2mat({sw_s.SwTime})+cell2mat({tr_s.TrTimeOffset});
-%         imp.tim=(StartTimes-min(StartTimes))';
-%         if any(cell2mat({tr_s.TrXStart})+cell2mat({tr_s.TrXStart}));
-%             imp.tim(:,2)=imp.tim(:,1)+cell2mat({tr_s.TrXStart}');
-%         end
-%         imp.tim(:,end+1)=imp.tim(:,1)+(double(cell2mat({tr_s.TrDataPoints})-1).*cell2mat({tr_s.TrXInterval}))';
-%         
-        % Scale and round off to nanoseconds
-%         imp.tim=round(imp.tim*10^9);
-%         hdr.tim.Class='tstamp';
-%         hdr.tim.Scale=1e-9;
-%         hdr.tim.Shift=0;
-%         hdr.tim.Func=[];
-%         hdr.tim.Units=1;
-%         
-%         imp.mrk=[];
-        
-%         scSaveImportedChannel(matfilename, channelnumber, imp, hdr);
+
          clear('imp','hdr','data');
         
         channelnumber=channelnumber+1;
@@ -1301,35 +1119,6 @@ end
 return
 end
 
-%--------------------------------------------------------------------------
-function [sc prefix]=LocalDataScaling(data)
-%--------------------------------------------------------------------------
-range=max(data(:)-min(data(:)));
-% if range<10^-9
-%     % Scale to pico-units
-%     sc=10^12;
-%     prefix='p';
-% elseif range<10^-6
-%     % Nano
-%     sc=10^9;
-%     prefix='n';
-% elseif range<10^-3
-%     % Micro
-%     sc=10^6;
-%     prefix='µ';
-% elseif range<1
-%     % Milli
-%     sc=10^3;
-%     prefix='m';
-% else
-%     % Stet
-%     sc=1;
-%     prefix='';
-% end
-sc=1;
-prefix = '';
-return
-end
 
 %--------------------------------------------------------------------------
 function [tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(tree, tr_row, k)
