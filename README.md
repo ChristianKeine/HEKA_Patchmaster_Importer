@@ -23,4 +23,4 @@ Heka_Importer creates object containing the following properties:
 
 - RecTable: Matlab table containing the recordings and several parameters associated with them. Each row represents a different recording. The recorded data are stored in RecTable.dataRaw. 
 
-- solutions: Matlab table containing the solutions and composition (chemicals & concentration) used during the experiments. This table is read-out from the solTree of the HEKA Patchmaster file. If you used several solutions throughout the experiment (e.g. two different internal solutions and two different external solutions), the solutions table will contain all solutions that have been used in any of the recordings. To assign the solutions to the actual recordings (first half of recordings was performed with external solution #1 and second half with external solution #2), one has to read out the 
+- solutions: Matlab table containing the solutions and composition (chemicals & concentration) used during the experiments. This table is read-out from the solTree of the HEKA Patchmaster file. The names of solutions correspond to the columns "ExternalSolution" and "InternalSolution" of the RecTable. 
