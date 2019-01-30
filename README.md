@@ -7,8 +7,9 @@ This stand-alone importer works independent of sigTool and will additionally ext
 
 The recordings will be sorted into a table together with various parameters such as Rs, Cm, Vhold. 
 
-**How to use:**
-Input: full file path and name of HEKA Patchmaster file that is to be loaded, e.g.
+ ## How to use:
+**Input:**
+- full file path and name of HEKA Patchmaster file that is to be loaded, e.g.
 To load example HEKA Patchmaster file "MyData.dat" located in "C:\PatchClamp\" run HEKA_Importer('C:\PatchClamp\MyData.dat').
 
 *Alternative:* run HEKA_Importer.GUI which will open the file dialog box from which the Patchmaster file can be selected.
