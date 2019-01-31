@@ -343,6 +343,7 @@ end
 s.SeScanParams=fread(fh, 96, 'uint8=>uint8');
 s.SeriesRecSize=1408;%      (* = 176 * 8 *)
 s=orderfields(s);
+s.Sweeps = [];
 
 end
 
@@ -369,7 +370,7 @@ sw.SwFiller2=fread(fh, 1, 'int32=>int32');%         = 152; (* INT32 *)
 sw.SwCRC=fread(fh, 1, 'int32=>int32');%                = 156; (* CARD32 *)
 sw.SweepRecSize         = 160;%      (* = 20 * 8 *)
 sw=orderfields(sw);
-
+sw.Traces = [];
 end
 
 %--------------------------------------------------------------------------

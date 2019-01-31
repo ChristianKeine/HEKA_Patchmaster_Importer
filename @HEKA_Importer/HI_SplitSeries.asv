@@ -196,7 +196,18 @@ for iGr = 1:length(grLoc)
      dataRaw{iGr,:} = dataT;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
      channelUnits{iGr,:} = grpUnit;
+     
+     %% get stimulus data
+     
+     
+     
+     
+     
 end
+
+
+
+
 
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
