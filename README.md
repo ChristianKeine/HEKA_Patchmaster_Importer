@@ -23,6 +23,6 @@ Heka_Importer creates object containing the following properties:
 
 - **opt**: structure containing different options when loading the file, currently it only contains the filepath of the HEKA Patchmaster file which was loaded and serves as placeholder for additional options in the future.
 
-- **RecTable**: Matlab table containing the recordings and several parameters associated with them. Each row represents a different recording. The recorded data are stored in RecTable.dataRaw and sorted by channel within, e.g. `RecTable.dataRaw{1}{2}` contains all sweeps of the first series/recording for the second channel. The correcsponding name of the channels is stored in `RecTable.chNames{1}`.
+- **RecTable**: Matlab table containing the recordings and several parameters associated with them. Each row represents a different recording. The recorded data are stored in RecTable.dataRaw and sorted by channel within, e.g. `RecTable.dataRaw{1}{2}` contains all sweeps of the first series/recording for the second channel. The corresponding name of the channels is stored in `RecTable.chNames{1}`.
 
 - **solutions**: Matlab table containing the solutions and composition (chemicals & concentration) used during the experiments. This table is read-out from the solTree of the HEKA Patchmaster file and requires that the recordings were associated with a solution base (otherwise this variable will be empty). The names of solutions correspond to the columns "ExternalSolution" and "InternalSolution" of the RecTable. 
