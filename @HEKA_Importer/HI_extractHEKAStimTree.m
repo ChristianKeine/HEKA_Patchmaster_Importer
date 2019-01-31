@@ -28,7 +28,6 @@ for iRec = 1:numel(Recs)
     [STIM{iRec},stimUnit{iRec}] = ImportStimulus(stimTree,allRecs(iRec),nextRec);
 end
 
-% nSegments = reshape([ch(:).chCRC],numel(ch),1);
 
 % ADD STIMULUS TO RECORDING TABLE
 obj.RecTable.stimWave = STIM;
