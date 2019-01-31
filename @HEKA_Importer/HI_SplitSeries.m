@@ -67,7 +67,6 @@ end
 % the SeSeriesCount field for the last series in the group, and initialize
 % a cell array of that length to hold data from that group
 serTot = 1;
-traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
