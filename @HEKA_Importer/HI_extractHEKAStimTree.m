@@ -69,7 +69,7 @@ for iC = 1:numel(ch)
         case 3
             chName = ['Dig_',num2str(ch(iC).chDacBit)];
         otherwise
-            chName = ['unknownMode_DAC_',num2str(ch(iC).chDacChannel)];
+            chName = ['DAC_',num2str(ch(iC).chDacChannel)];
     end
     
     
