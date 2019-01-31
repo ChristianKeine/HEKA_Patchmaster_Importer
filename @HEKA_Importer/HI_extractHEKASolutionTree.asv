@@ -35,8 +35,8 @@ end
 %% ASSIGN SOLUTION NAMES TO SOLUTION NUMBERS FROM RECORDINGS IN RECTABLE
 
 getSolutionName = @(ID,sNames,sNumber) sNames(sNumber(ID));
-obj.RecTable.ExternalSolution = cellfun(getSolutionName,obj.RecTable.ExternalSolution,repmat({sNames},size(obj.RecTable.ExternalSolution)),repmat({sNumber},size(obj.RecTable.ExternalSolution)));
-obj.RecTable.InternalSolution = cellfun(getSolutionName,obj.RecTable.InternalSolution,repmat({sNames},size(obj.RecTable.InternalSolution)),repmat({sNumber},size(obj.RecTable.InternalSolution)));
+obj.RecTable.ExternalSolution = cellfun(getSolutionName,obj.RecTable.ExternalSolution,repmat({sNames},size(obj.RecTable.ExternalSolution)),repmat({sNumber},size(obj.RecTable.ExternalSolution)))
+obj.RecTable.InternalSolution = sNames(sNumber(obj.RecTable.InternalSolution));
 
 
 else % USE NANs TO OVERWRITE THE STANDARD 0
