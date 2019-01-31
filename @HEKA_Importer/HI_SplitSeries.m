@@ -61,7 +61,6 @@ if ~isempty(stimTree)
         return
     end
 end
-% swLoc = find(~cellfun('isempty',tree(:,4)));
 
 % Figure out how many series are in each group/biological cell by pulling
 % the SeSeriesCount field for the last series in the group, and initialize
@@ -105,7 +104,6 @@ for iGr = 1:length(grLoc)
         % Name of pgf stim file used in each series
         grpProt{iSer} = dataTree{seLoc(serTot),3}.SeLabel;
         grpTimes{1,iSer} = dataTree{seLoc(serTot),3}.SeTime;
-%         grpTimes{2,iSer} = tree{seLoc(serTot),3}.SeTimeMATLAB;
         grpFs{iSer} = 1/dataTree{seLoc(serTot)+2,5}.TrXInterval;
         grpHolds{iSer} = dataTree{seLoc(serTot),3}.SeAmplifierState.E9CCIHold;
         
