@@ -71,7 +71,7 @@ traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
-channels = cell(size(grLoc));
+channelUnits = cell(size(grLoc));
 
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
@@ -93,7 +93,7 @@ for iGr = 1:length(grLoc)
     grpData = cell(nSer,1);
     grpProt = cell(1,nSer);
     grpType = cell(nSer,1);
-    grpUnit = cell(6,nSer);
+    grpUnit = cell(nSer,1);
     grpFs = cell(1,nSer);
     grpTimes = cell(1,nSer);
     grpHolds = cell(1,nSer);
@@ -139,14 +139,14 @@ for iGr = 1:length(grLoc)
         
         % STRIP DOWN TO ACTUAL NUMBER OF CHANNELS
 %         grpType = grpType(1:nChan,:);
-        grpUnit = grpUnit(1:nChan,:);
+%         grpUnit = grpUnit(1:nChan,:);
         chanType = chanType(1:nChan,:);
         chanUnit = chanUnit(1:nChan,:);
        
         for iChan = 1:nChan
             grpData{iSer}.(chanType{(iChan)}) = data{traceTot};
             grpType{iSer}(iChan) = chanType(iChan);
-            grpUnit(:,iSer) = chanUnit;
+            grpUnit{iSer}.(chanType{(iChan)}) = chanUnit{iChan};
             traceTot = traceTot+1;
         end
         
@@ -188,19 +188,20 @@ for iGr = 1:length(grLoc)
     dataT = cell(nSer,1);
     for iSer=1:nSer   
         for iChan = reshape(fieldnames(ephysData.(currGr).data{iSer}),1,numel(fieldnames(ephysData.(currGr).data{iSer})))
-     dataT{iSer,:} = cellfun(addEPS,ephysData.(currGr).data{iSer}.(iChan),'UniformOutput',false);
+        ephysData.(currGr).data{iSer}.(iChan{:}) = addEPS(ephysData.(currGr).data{iSer}.(iChan{:}));
+        end
+        dataT{iSer,:} = ephysData.(currGr).data{iSer};
     end
     
      dataRaw{iGr,:} = dataT;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-   
+     channelUnits{iGr,:} = grpUnit;
 end
 
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channels = vertcat(channels{:});
-
+    obj.RecTable.channelUnits = vertcat(channelUnits{:});
     obj.RecTable = struct2table(obj.RecTable);
 
 
