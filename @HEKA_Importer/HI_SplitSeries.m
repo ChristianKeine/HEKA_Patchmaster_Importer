@@ -71,7 +71,7 @@ traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
-channelUnits = cell(size(grLoc));
+chNames = cell(size(grLoc));
 
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
@@ -137,19 +137,19 @@ for iGr = 1:length(grLoc)
         % voltage, data(5) will contain the current and data(6) will 
         % contain the voltage.
         
-        % STRIP DOWN TO ACTUAL NUMBER OF CHANNELS
-%         grpType = grpType(1:nChan,:);
-%         grpUnit = grpUnit(1:nChan,:);
+        % STRIP DOWN TO ACTUAL NUMBER OF CHANNELS AND REMOVE EMPTY CELLS
+        % FOR RESHAPING LATER
+
         chanType = chanType(1:nChan,:);
         chanUnit = chanUnit(1:nChan,:);
        
-        for iChan = 1:nChan
-            grpData{iSer}{iChan} = data{traceTot};
-            grpType{iSer}(iChan) = chanType(iChan);
-            grpUnit{iSer}.(chanType{(iChan)}) = chanUnit{iChan};
-            traceTot = traceTot+1;
-        end
-        
+        % RESHAPE DATA STRUCTURE FOR EASY PULL-OUT
+        dataT = transpose(reshape(data,nChan,nSer));
+
+        % GET CHANNEL TYPE/NAME AND UNITS
+        grpType{iSer} = reshape(chanType,1,nChan);
+        grpUnit{iSer} = reshape(chanUnit,1,nChan);
+        grpData{iSer} = dataT(iSer,:);
         
         if ~isempty(stimTree)
             % Pull out the relevant section of the stimTree for the series at
@@ -183,40 +183,23 @@ for iGr = 1:length(grLoc)
         ephysData.(currGr).stimTree = grpStim;
     end
 
-    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION; ADD TO ALL CHANNELS
     addEPS = @(x) x+randn(size(x))*eps;   
-    dataT = cell(nSer,1);
+    
+    
     for iSer=1:nSer   
-        for iChan = reshape(fieldnames(ephysData.(currGr).data{iSer}),1,numel(fieldnames(ephysData.(currGr).data{iSer})))
-        ephysData.(currGr).data{iSer}.(iChan{:}) = addEPS(ephysData.(currGr).data{iSer}.(iChan{:}));
-        end
-        dataT{iSer,:} = ephysData.(currGr).data{iSer};
+        ephysData.(currGr).data{iSer} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
     end
     
-     dataRaw{iGr,:} = dataT;
+     dataRaw{iGr,:} = ephysData.(currGr).data;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-     channelNames{iGr,:} = grpType;
-     
-     %% get stimulus data
-     
-     
-     
-     
-     
+     chNames{iGr,:} = grpType;
+  
 end
-
-
-
-
-
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channelUnits = vertcat(channelUnits{:});
+    obj.RecTable.channelNames = vertcat(chNames{:});
     obj.RecTable = struct2table(obj.RecTable);
-
-
-
-
 
 end

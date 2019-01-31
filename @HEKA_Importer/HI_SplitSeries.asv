@@ -71,7 +71,7 @@ traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
-channelNames = cell(size(grLoc));
+chNames = cell(size(grLoc));
 
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
@@ -143,8 +143,11 @@ for iGr = 1:length(grLoc)
         chanType = chanType(1:nChan,:);
         chanUnit = chanUnit(1:nChan,:);
        
+        % get all data 
+        
+        
         for iChan = 1:nChan
-            grpData{iSer}{iChan} = data{traceTot};
+%             grpData{iSer}{iChan} = data{traceTot};
             grpType{iSer}(iChan) = chanType(iChan);
             grpUnit{iSer}.(chanType{(iChan)}) = chanUnit{iChan};
             traceTot = traceTot+1;
@@ -170,6 +173,9 @@ for iGr = 1:length(grLoc)
         serTot = serTot+1;
     end
     
+    % get all data at once;
+    grpData = transpose(reshape(data,nChan,nSer));
+
     % Save data to the appropriate group in the nested output struct.
     ephysData.(currGr).data = grpData;
     ephysData.(currGr).protocols = grpProt;
@@ -183,36 +189,23 @@ for iGr = 1:length(grLoc)
         ephysData.(currGr).stimTree = grpStim;
     end
 
-    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION  
+    %% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION; ADD TO ALL CHANNELS
     addEPS = @(x) x+randn(size(x))*eps;   
-    dataT = cell(nSer,1);
+    
+    
     for iSer=1:nSer   
-        for iChan = reshape(fieldnames(ephysData.(currGr).data{iSer}),1,numel(fieldnames(ephysData.(currGr).data{iSer})))
-        ephysData.(currGr).data{iSer}.(iChan{:}) = addEPS(ephysData.(currGr).data{iSer}.(iChan{:}));
-        end
-        dataT{iSer,:} = ephysData.(currGr).data{iSer};
+        ephysData.(currGr).data{iSer} = cellfun(addEPS,ephysData.(currGr).data{iSer},'UniformOutput',false);
     end
     
-     dataRaw{iGr,:} = dataT;
+     dataRaw{iGr,:} = ephysData.(currGr).data;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-     channelNames{iGr,:} = grpType;
-     
-     %% get stimulus data
-     
-     
-     
-     
-     
+     chNames{iGr,:} = grpType;
+  
 end
-
-
-
-
-
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channelNames = vertcat(channelNames{:});
+    obj.RecTable.channelNames = vertcat(chNames{:});
     obj.RecTable = struct2table(obj.RecTable);
 
 
