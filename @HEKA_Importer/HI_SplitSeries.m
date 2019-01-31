@@ -144,7 +144,7 @@ for iGr = 1:length(grLoc)
         chanUnit = chanUnit(1:nChan,:);
        
         for iChan = 1:nChan
-            grpData{iSer}.(chanType{(iChan)}) = data{traceTot};
+            grpData{iSer}{iChan} = data{traceTot};
             grpType{iSer}(iChan) = chanType(iChan);
             grpUnit{iSer}.(chanType{(iChan)}) = chanUnit{iChan};
             traceTot = traceTot+1;
@@ -195,7 +195,7 @@ for iGr = 1:length(grLoc)
     
      dataRaw{iGr,:} = dataT;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-     channelUnits{iGr,:} = grpUnit;
+     channelNames{iGr,:} = grpType;
      
      %% get stimulus data
      

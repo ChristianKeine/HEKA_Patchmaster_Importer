@@ -71,7 +71,7 @@ traceTot = 1;
     
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
-channelUnits = cell(size(grLoc));
+channelNames = cell(size(grLoc));
 
 for iGr = 1:length(grLoc)
     % Strip hyphens/other characters that are invalid in field names
@@ -144,7 +144,7 @@ for iGr = 1:length(grLoc)
         chanUnit = chanUnit(1:nChan,:);
        
         for iChan = 1:nChan
-            grpData{iSer}.(chanType{(iChan)}) = data{traceTot};
+            grpData{iSer}{iChan} = data{traceTot};
             grpType{iSer}(iChan) = chanType(iChan);
             grpUnit{iSer}.(chanType{(iChan)}) = chanUnit{iChan};
             traceTot = traceTot+1;
@@ -195,7 +195,7 @@ for iGr = 1:length(grLoc)
     
      dataRaw{iGr,:} = dataT;
      SR{iGr,:} =  reshape([ephysData.(currGr).samplingFreq{:}], numel([ephysData.(currGr).samplingFreq{:}]),1); 
-     channelUnits{iGr,:} = grpUnit;
+     channelNames{iGr,:} = grpType;
      
      %% get stimulus data
      
@@ -212,7 +212,7 @@ end
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channelUnits = vertcat(channelUnits{:});
+    obj.RecTable.channelNames = vertcat(channelNames{:});
     obj.RecTable = struct2table(obj.RecTable);
 
 
