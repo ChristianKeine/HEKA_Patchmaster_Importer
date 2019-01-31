@@ -11,7 +11,6 @@ function HI_extractHEKAStimTree(obj,stimTree)
 %find Series/Recordings
 
 allRecs = find(~cellfun(@isempty,stimTree(:,2)));
-% allChannels = find(~cellfun(@isempty,stimTree(:,3)));
 
 % GET CHANNELS AND NUMBER OF SEGMENTS PER CHANNEl
 Recs = [stimTree{allRecs,2}];
@@ -42,7 +41,6 @@ function [STIM,stimUnit] = ImportStimulus(stimTree,thisRecID,nextRecID)
 % GET ALL CHANNELS OF THIS RECORDING
 chIDs = find(~cellfun(@isempty,stimTree(:,3)));
 chIDs = chIDs(chIDs>thisRecID & chIDs<nextRecID);
-% nCh = numel(chIDs);
 nSweeps = stimTree{thisRecID,2}.stNumberSweeps;
 
 % GET SAMPLING RATE
@@ -53,16 +51,12 @@ ch = [stimTree{chIDs,3}];
 nSegments = reshape([ch(:).chCRC],numel(ch),1);
 
 
-% getAllSegments of this Recordings
-% segStruct = find(~cellfun(@isempty,stimTree(:,4)));
-% segStruct = segStruct(segStruct>thisRecID & segStruct<nextRecID);
-
-
 %% EXTRACT STIMULUS SEGMENTS PER CHANNEL
 for iC = 1:numel(ch)
     
     % GET CHANNEL NAME
-    % TO DO: NEED TO FIGURE OUT HOW THOSE CODES RELATE TO ACTUAL CHANNELS
+    % TO DO: NEED TO FIGURE OUT HOW THOSE CODES RELATE TO ACTUAL CHANNEL
+    % NAMES
     sMode = ch(iC).chStimToDacID;
     DACMode = ch(iC).chDacMode;
 %     ADCMode = ch(iC).chDacMode;
@@ -77,8 +71,6 @@ for iC = 1:numel(ch)
         otherwise
             chName = ['unknownMode_DAC_',num2str(ch(iC).chDacChannel)];
     end
-    
-    
     
     
     % GET SEGMENTS
@@ -132,10 +124,7 @@ for iC = 1:numel(ch)
     
     
     STIM.(chName) = stimMatrix;
-    
-    
-    
-    
+   
 end
 
     stimUnit = reshape({ch(:).chDacUnit},1,numel(ch));
