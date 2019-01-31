@@ -1,6 +1,5 @@
 function HI_extractHEKASolutionTree(obj,solTree)
 
-% load('C:\Users\keineC\Documents\MATLAB\tree','tree')
 
 %1: Root
 %2 Solution
