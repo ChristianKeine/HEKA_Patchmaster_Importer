@@ -1,8 +1,6 @@
 function HI_extractHEKAStimTree(obj,stimTree)
 
-% load('C:\Users\keineC\Documents\MATLAB\tree','tree')
-% global u, if isempty(u), u = units; end
-% ind = ~cellfun(@isempty,stimTree);
+% TODO: Add support for more complex stimuli, e.g. ramps, alternating etc.
 
 %1: Root
 %2 Series
@@ -66,8 +64,9 @@ for iC = 1:numel(ch)
     % TO DO: NEED TO FIGURE OUT HOW THOSE CODES RELATE TO ACTUAL CHANNELS
     sMode = ch(iC).chStimToDacID;
     DACMode = ch(iC).chDacMode;
-    %ADCMode = ch(iC).chDacMode;
+%     ADCMode = ch(iC).chDacMode;
     DACBit = ch(iC).chDacBit;
+    
     
     switch DACMode
         case 1
@@ -131,7 +130,7 @@ for iC = 1:numel(ch)
     
     
     
-    
+    stimUnit = reshape({ch(:).chDacUnit},1,numel(ch));
     STIM.(chName) = stimMatrix;
     
     

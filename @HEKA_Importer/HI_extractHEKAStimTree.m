@@ -17,6 +17,7 @@ allRecs = find(~cellfun(@isempty,stimTree(:,2)));
 Recs = [stimTree{allRecs,2}];
 nRecs = numel(Recs);
 STIM = cell(numel(Recs),1);
+stimUnit = cell(numel(Recs),1);
 
 for iRec = 1:numel(Recs)
     if iRec == nRecs
@@ -24,19 +25,20 @@ for iRec = 1:numel(Recs)
     else
         nextRec = allRecs(iRec+1);
     end
-    STIM{iRec} = ImportStimulus(stimTree,allRecs(iRec),nextRec);
+    [STIM{iRec},stimUnit{iRec}] = ImportStimulus(stimTree,allRecs(iRec),nextRec);
 end
 
 % nSegments = reshape([ch(:).chCRC],numel(ch),1);
 
 % ADD STIMULUS TO RECORDING TABLE
 obj.RecTable.stimWave = STIM;
+obj.RecTable.stimUnit = stimUnit;
 
 end
 
 
 
-function STIM = ImportStimulus(stimTree,thisRecID,nextRecID)
+function [STIM,stimUnit] = ImportStimulus(stimTree,thisRecID,nextRecID)
 
 % GET ALL CHANNELS OF THIS RECORDING
 chIDs = find(~cellfun(@isempty,stimTree(:,3)));
@@ -64,8 +66,9 @@ for iC = 1:numel(ch)
     % TO DO: NEED TO FIGURE OUT HOW THOSE CODES RELATE TO ACTUAL CHANNELS
     sMode = ch(iC).chStimToDacID;
     DACMode = ch(iC).chDacMode;
-    %ADCMode = ch(iC).chDacMode;
+%     ADCMode = ch(iC).chDacMode;
     DACBit = ch(iC).chDacBit;
+    
     
     switch DACMode
         case 1
@@ -129,7 +132,6 @@ for iC = 1:numel(ch)
     
     
     
-    
     STIM.(chName) = stimMatrix;
     
     
@@ -137,6 +139,7 @@ for iC = 1:numel(ch)
     
 end
 
+    stimUnit = reshape({ch(:).chDacUnit},1,numel(ch));
 
 end
 
