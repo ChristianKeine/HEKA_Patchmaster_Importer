@@ -196,7 +196,7 @@ end
 
     obj.RecTable.dataRaw = vertcat(dataRaw{:});
     obj.RecTable.SR = vertcat(SR{:});
-    obj.RecTable.channelNames = vertcat(chNames{:});
+    obj.RecTable.chNames = vertcat(chNames{:});
     obj.RecTable = struct2table(obj.RecTable);
 
 end
