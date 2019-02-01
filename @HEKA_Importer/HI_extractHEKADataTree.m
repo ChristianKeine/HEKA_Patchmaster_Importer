@@ -63,7 +63,7 @@ end
 
 % GET EXPERIMENT NAMES
 nRecs = numel(Recs);
-ExperimentName = repmat(tree{thisExpID,2}.GrLabel,nRecs,1);
+ExperimentName = repmat({tree{thisExpID,2}.GrLabel},nRecs,1);
 ExperimentNumber = repmat(ExpNum,nRecs,1);
 recNum = reshape(1:nRecs,nRecs,1);
 
