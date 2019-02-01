@@ -163,12 +163,12 @@ for iGr = 1:length(grLoc)
             
 		end
 
+		% SORT DATA BY SERIES AND CHANNEL
 		for iChan = 1:nChan
 			grpData{iSer,:}(iChan) = data(traceTot);
 			traceTot = traceTot+1;
 		end
-		
-		
+				
         % Move on to the next round
         serTot = serTot+1;
     end
