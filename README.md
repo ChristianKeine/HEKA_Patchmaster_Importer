@@ -9,6 +9,9 @@ The recordings will be sorted into a table together with various parameters e.g 
 Note: Currently, not all possible stimuli are supported. If your stimulus contains ramps or alternating segments, it won't be reconstructed properly. However, it should work fine for most stimuli and support for new stimuli will be added in the future.
 
  ## How to use:
+ 
+ Add the folder "@HEKA_Importer" containing all the corresponding files to your Matlab directory.
+ 
 **Input:**
 - full file path and name of HEKA Patchmaster file that is to be loaded, e.g.
 to load HEKA Patchmaster file "MyData.dat" located in "C:\PatchClamp\" run `HEKA_Importer('C:\PatchClamp\MyData.dat')`.
