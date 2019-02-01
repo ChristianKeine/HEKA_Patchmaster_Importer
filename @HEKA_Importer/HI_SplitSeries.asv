@@ -164,9 +164,11 @@ for iGr = 1:length(grLoc)
 		end
 
 		for iChan = 1:nChan
-			grpData{iSer,:}(iChan) = data(traceTot);
-			traceTot = traceTot+1;
-		end
+            grpData(iChan,iSer) = data(traceTot);
+%             grpType(:,iSer) = chanType;
+%             grpUnit(:,iSer) = chanUnit;
+            traceTot = traceTot+1;
+        end
 		
 		
         % Move on to the next round
