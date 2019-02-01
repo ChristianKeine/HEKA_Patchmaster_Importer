@@ -30,10 +30,10 @@ classdef HEKA_Importer < handle
 % 								run "HEKA_Importer('C:\PatchClamp\MyData.dat')"
 % 
 % *Alternative:*	run "HEKA_Importer.GUI" which will open the file dialog 
-%					box from which the Patchmaster file can be selected.
+% 					box from which the Patchmaster file can be selected.
 % 
 % - OUTPUTS:
-% % Heka_Importer creates object containing the following properties:
+% Heka_Importer creates object containing the following properties:
 % 
 % - trees		struct			structure containing the dataTree 
 %  								(from the .pul file), the stimTree 
