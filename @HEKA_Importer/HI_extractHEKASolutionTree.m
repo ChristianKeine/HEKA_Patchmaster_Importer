@@ -1,8 +1,20 @@
 function HI_extractHEKASolutionTree(obj,solTree)
 
-
+% Function to extract parameters from the HEKA sol tree create solution
+% table containing the chemicals and concentrations for all solutions used
+% in the recordings. Requires solution base to be activated when recording
+% the data.
+% Takes HEKA_IMPORTER object as input and adds solution table.
+% 
+% 
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile 
+% 			HEKA_Importer.HI_SplitSeries
+% 			HEKA_Importer.HI_ImportHEKAtoMat 			
+% 			HEKA_Importer.HI_extractHEKADataTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
 %1: Root
-%2 Solution
+%2: Solution
 %3: Chemicals
 
 

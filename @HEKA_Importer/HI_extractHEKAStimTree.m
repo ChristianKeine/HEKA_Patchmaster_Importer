@@ -1,15 +1,25 @@
 function HI_extractHEKAStimTree(obj,stimTree)
+%
+% Function to extract parameters from the HEKA stimulus tree and sort them
+% according to the recordings.
+% Takes HEKA_IMPORTER object as input and adds the variables stimWave 
+% (containing the reconstructed stimulus wave) and stimUnits to the RecTable
+% 
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile 
+% 			HEKA_Importer.HI_SplitSeries
+% 			HEKA_Importer.HI_ImportHEKAtoMat 			
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKADataTree
 
 % TODO: Add support for more complex stimuli, e.g. ramps, alternating etc.
 
+
+%find Series/Recordings
 %1: Root
 %2 Series
 %3: channels
 %4: segments
-
-
-%find Series/Recordings
-
 allRecs = find(~cellfun(@isempty,stimTree(:,2)));
 
 % GET CHANNELS AND NUMBER OF SEGMENTS PER CHANNEl

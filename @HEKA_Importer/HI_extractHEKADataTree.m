@@ -1,5 +1,16 @@
 function HI_extractHEKADataTree(obj,tree)
 
+% Function to extract parameters from the HEKA data tree and sort them
+% according to the recordings.
+% Takes HEKA_IMPORTER object as input and creates RecTable
+% containing the recording parameters for each recording/series.
+% 
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile 
+% 			HEKA_Importer.HI_SplitSeries
+% 			HEKA_Importer.HI_ImportHEKAtoMat 			
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
 
 %1: Root
 %2 Group/Experiment

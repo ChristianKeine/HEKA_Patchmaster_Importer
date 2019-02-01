@@ -1,7 +1,18 @@
 function HI_extractHEKASolutionTree(obj,solTree)
 
-% load('C:\Users\keineC\Documents\MATLAB\tree','tree')
-
+% Function to extract parameters from the HEKA sol tree create solution
+% table containing the chemicals and concentrations for all solutions used
+% in the recordings. Requires solution base to be activated when recording
+% the data.
+% Takes HEKA_IMPORTER object as input and creates solution
+% containing the recording parameters for each recording/series.
+% 
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile 
+% 			HEKA_Importer.HI_SplitSeries
+% 			HEKA_Importer.HI_ImportHEKAtoMat 			
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
 %1: Root
 %2 Solution
 %3: Chemicals
@@ -35,8 +46,8 @@ end
 %% ASSIGN SOLUTION NAMES TO SOLUTION NUMBERS FROM RECORDINGS IN RECTABLE
 
 getSolutionName = @(ID,sNames,sNumber) sNames(sNumber(ID));
-obj.RecTable.ExternalSolution = cellfun(getSolutionName,obj.RecTable.ExternalSolution,repmat({sNames},size(obj.RecTable.ExternalSolution)),repmat({sNumber},size(obj.RecTable.ExternalSolution)))
-obj.RecTable.InternalSolution = sNames(sNumber(obj.RecTable.InternalSolution));
+obj.RecTable.ExternalSolution = cellfun(getSolutionName,obj.RecTable.ExternalSolution,repmat({sNames},size(obj.RecTable.ExternalSolution)),repmat({sNumber},size(obj.RecTable.ExternalSolution)));
+obj.RecTable.InternalSolution = cellfun(getSolutionName,obj.RecTable.InternalSolution,repmat({sNames},size(obj.RecTable.InternalSolution)),repmat({sNumber},size(obj.RecTable.InternalSolution)));
 
 
 else % USE NANs TO OVERWRITE THE STANDARD 0

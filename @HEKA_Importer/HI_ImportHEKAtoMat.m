@@ -35,7 +35,8 @@ function [dataTree, matData, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
 % 12.08.15 Don't save *.kcl file (line 793 commented out).
 % 03.07.17 Modified by Samata Katta to read in stimulus parameters from
 % .pgf section of .dat file.
-% 
+% 01.01.2019 Modified by Christian Keine to read solution parameters from 
+% .sol section of .dat file.
 
 
 thisfile = obj.opt.filepath;
@@ -343,7 +344,7 @@ end
 s.SeScanParams=fread(fh, 96, 'uint8=>uint8');
 s.SeriesRecSize=1408;%      (* = 176 * 8 *)
 s=orderfields(s);
-s.Sweeps = [];
+s.Sweeps = []; % used to store all the sweeps within the recording structure later on
 
 end
 
@@ -370,7 +371,7 @@ sw.SwFiller2=fread(fh, 1, 'int32=>int32');%         = 152; (* INT32 *)
 sw.SwCRC=fread(fh, 1, 'int32=>int32');%                = 156; (* CARD32 *)
 sw.SweepRecSize         = 160;%      (* = 20 * 8 *)
 sw=orderfields(sw);
-sw.Traces = [];
+sw.Traces = []; % used to store all the traces/channels within the sweep structure later on
 end
 
 %--------------------------------------------------------------------------
@@ -441,7 +442,7 @@ tr=orderfields(tr);
 
 end
 
-%% LOADING SOLUTION TREE
+%% GET SOLUTION TREE
 %--------------------------------------------------------------------------
 function [Tree, Counter]=getSolutionTree(fh, Sizes, Position)
 %--------------------------------------------------------------------------

@@ -36,7 +36,7 @@ function obj = HI_SplitSeries(obj,data, dataTree,stimTree, varargin)
 %                               channel) for that group.
 % 
 % Created by Sammy Katta on 27 May 2014.
-
+% Modified by Christian Keine 01/2019.
 
 P = inputParser;
 P.addRequired('data');
