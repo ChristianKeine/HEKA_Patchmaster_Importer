@@ -6,7 +6,7 @@ classdef HEKA_Importer < handle
 % https://github.com/irondukepublishing/sigTOOL) with modifications 
 % from Sammy Katta (https://github.com/sammykatta/Matlab-PatchMaster). 
 % 
-% This stand-alone importer works independent of sigTool and will 
+% This stand-alone importer works independently of sigTool and will 
 % additionally extract the stimulus (reconstructed from the pgf) 
 % and solutions (when solution base was active during recording). 
 % 
