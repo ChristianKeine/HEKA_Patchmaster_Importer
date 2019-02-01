@@ -29,7 +29,7 @@ classdef HEKA_Importer < handle
 % 								"MyData.dat" located in "C:\PatchClamp\" 
 % 								run "HEKA_Importer('C:\PatchClamp\MyData.dat')"
 % 
-% *Alternative:*	run `HEKA_Importer.GUI` which will open the file dialog 
+% *Alternative:*	run "HEKA_Importer.GUI" which will open the file dialog 
 %					box from which the Patchmaster file can be selected.
 % 
 % - OUTPUTS:
