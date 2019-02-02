@@ -164,17 +164,17 @@ for iGr = 1:length(grLoc)
 		end
 
 		% SORT DATA BY SERIES AND CHANNEL
-		for iChan = 1:nChan
-			grpData{iSer,:}(iChan) = data(traceTot);
-			traceTot = traceTot+1;
-		end
+% 		for iChan = 1:nChan
+% 			grpData{iSer,:}(iChan) = data(traceTot);
+% 			traceTot = traceTot+1;
+% 		end
 				
         % Move on to the next round
         serTot = serTot+1;
     end
     
     % Save data to the appropriate group in the nested output struct.
-    ephysData.(currGr).data = grpData;
+    ephysData.(currGr).data = data{iGr};
     ephysData.(currGr).protocols = grpProt;
     ephysData.(currGr).channel = grpType;
     ephysData.(currGr).dataunit = grpUnit;

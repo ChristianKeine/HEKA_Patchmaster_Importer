@@ -922,8 +922,6 @@ ser_row(nseries+1)=grp_row(grp+1);
 
 dataoffsets=[];
 % Create the channels
-
-matData2 = cell(nseries,1);
 for ser=1:nseries
    
 %     
@@ -996,7 +994,7 @@ for ser=1:nseries
 
 %         matData{channelnumber} = data;
 		% TESTING: PERFORM CHANNEL SORTING HERE
-        matData2{ser,:}{k} = data;
+        matData2{ser}{k} = data;
          
 
         
