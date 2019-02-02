@@ -19,12 +19,12 @@ end
     %% CALL IMPORT FUNCTION
     [dataTree, data, stimTree, solTree] = obj.HI_ImportHEKAtoMat;
     
-    for i = length(data):-1:1
-        dCollapse(1:length(data{i}))= data{i};
-    end
+%     for i = length(data):-1:1
+%         dCollapse(1:length(data{i}))= data{i};
+%     end
     
     % EXTRACT DATA AND SORT INFORMATION FROM TREE STRUCTURES
-    obj.HI_SplitSeries(dCollapse,dataTree,stimTree);
+    obj.HI_SplitSeries(data,dataTree,stimTree);
     obj.HI_extractHEKADataTree(dataTree);
     obj.HI_extractHEKAStimTree(stimTree);
     obj.HI_extractHEKASolutionTree(solTree);
