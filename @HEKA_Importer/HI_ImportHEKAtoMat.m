@@ -1,4 +1,4 @@
-function [dataTree, matData, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
+function [dataTree, matData2, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
 % ImportHEKA imports HEKA PatchMaster and ChartMaster .DAT files
 %
 % Example:
@@ -158,9 +158,9 @@ end
 
 % For each group
 channelnumber=1;
-matData = cell(size(grp_row));
+matData2 = cell(size(grp_row));
 for grp=1:numel(grp_row)
-    [channelnumber, matData{grp}]=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row, channelnumber);
+    [channelnumber, matData2{grp}]=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row, channelnumber);
 end
 
 
@@ -903,7 +903,7 @@ fseek(fh, offset+A.AmplifierStateSize, 'bof');
 end
 
 %--------------------------------------------------------------------------
-function [channelnumber,matData]=LocalImportGroup(fh, thisfile, tree, grp, grp_row, channelnumber)
+function [channelnumber,matData2]=LocalImportGroup(fh, thisfile, tree, grp, grp_row, channelnumber)
 %--------------------------------------------------------------------------
 
 
@@ -993,7 +993,8 @@ for ser=1:nseries
         
 
         matData{channelnumber} = data;
-        
+		% TESTING: PERFORM CHANNEL SORTING HERE
+        matData2{ser}{k} = data;
          
 
         
