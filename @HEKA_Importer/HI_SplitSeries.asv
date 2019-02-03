@@ -66,7 +66,7 @@ end
 % the SeSeriesCount field for the last series in the group, and initialize
 % a cell array of that length to hold data from that group
 serTot = 1;
-% traceTot = 1;
+traceTot = 1;
 dataRaw = cell(size(grLoc));
 SR = cell(size(grLoc));
 chNames = cell(size(grLoc));
@@ -88,7 +88,7 @@ for iGr = 1:length(grLoc)
 	% Initialize cell array with space for 6 channels worth of data from a
 	% given series. For series where fewer than 6 channels are recorded,
 	% the cells in the last few rows will remain empty.
-% 	grpData = cell(nSer,1);
+	grpData = cell(nSer,1);
 	grpProt = cell(1,nSer);
 	grpType = cell(nSer,1);
 	grpUnit = cell(nSer,1);
@@ -140,7 +140,9 @@ for iGr = 1:length(grLoc)
 		chanType = chanType(1:nChan,:);
 		chanUnit = chanUnit(1:nChan,:);
 		
-
+		% RESHAPE DATA STRUCTURE FOR EASY PULL-OUT
+		%         dataT = transpose(reshape(data,nChan,nSer));
+		
 		% GET CHANNEL TYPE/NAME AND UNITS
 		grpType{iSer} = reshape(chanType,1,nChan);
 		grpUnit{iSer} = reshape(chanUnit,1,nChan);
