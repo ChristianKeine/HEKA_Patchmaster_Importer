@@ -1102,7 +1102,7 @@ end
 function [tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(tree, tr_row, k)
 %--------------------------------------------------------------------------
 % Check units are the same for all traces
-tr_s=tree{tr_row(k, :),5};
+tr_s=[tree{tr_row(k, :),5}];
 
 % Check for conditions that are unexpected and will lead to error in the
 % sigTOOL data file
@@ -1179,23 +1179,23 @@ return
 end
 %--------------------------------------------------------------------------
     
-% function str=patchType(n)
-% switch n
-%     case 0
-%         str='Inside-out';
-%     case 1
-%         str='Cell-attached';
-%     case 2
-%         str='Outside-out';
-%     case 3
-%         str='Whole=cell';
-%     case 4
-%         str='Current-lamp';
-%     case 5
-%         str='Voltage-clamp';
-%     otherwise
-%         str=[];
-% end
-% return
-% end
+function str=patchType(n)
+switch n
+    case 0
+        str='Inside-out';
+    case 1
+        str='Cell-attached';
+    case 2
+        str='Outside-out';
+    case 3
+        str='Whole=cell';
+    case 4
+        str='Current-lamp';
+    case 5
+        str='Voltage-clamp';
+    otherwise
+        str=[];
+end
+return
+end
                                     
