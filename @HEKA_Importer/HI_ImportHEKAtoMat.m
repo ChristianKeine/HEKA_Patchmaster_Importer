@@ -107,8 +107,8 @@ end
 addEPS = @(x) x+randn(size(x))*eps;
 
 % For each group
-matData2 = cell(size(grp_row));
-dataRaw = cell(size(grp_row));
+matData2 = cell(numel(grp_row),1);
+dataRaw = cell(numel(grp_row),1);
 
 for iGr = 1:numel(grp_row)
 	matData2{iGr}=LocalImportGroup(fh, obj.trees.dataTree, iGr, grp_row);
