@@ -122,14 +122,11 @@ classdef HEKA_Importer < handle
 
     methods (Access = private)
         
-
         HI_loadHEKAFile(obj,varargin);
-
-        [tree, data,stimTree,solTree] = HI_ImportHEKAtoMat(obj)
-        ephysData = HI_SplitSeries(obj,tree, dCollapse, ephysData, saveName,stimTree);
-        HI_extractHEKADataTree(obj,tree);
-        HI_extractHEKAStimTree(obj,t,stimTree,ephysData);
-        HI_extractHEKASolutionTree(obj,solTree);
+        HI_ImportHEKAtoMat(obj)
+        HI_extractHEKADataTree(obj);
+        HI_extractHEKAStimTree(obj);
+        HI_extractHEKASolutionTree(obj);
 
     end
     
