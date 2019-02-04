@@ -433,29 +433,10 @@ end
 
 %% GET SOLUTION TREE
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getSolutionTree(fh, Sizes, Position)
-%--------------------------------------------------------------------------
-% Main entry point for loading tree
-[Tree, Counter]=getSolutionTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-
-end
-
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
-%--------------------------------------------------------------------------
-% Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter);
-for k=1:double(nchild)
-	[Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
-end
-
-end
-
-%--------------------------------------------------------------------------
 function [Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneSolutionRecord(fh, Level, Counter);
+[s, Counter]=getOneSolutionRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -465,7 +446,7 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneSolutionRecord(fh, Level, Counter)
+function [rec, Counter]=getOneSolutionRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
@@ -530,29 +511,10 @@ end
 
 %% GET STIMULUS TREE
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getStimTree(fh, Sizes, Position)
-%--------------------------------------------------------------------------
-% Main entry point for loading tree
-[Tree, Counter]=getStimTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-
-end
-
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
-%--------------------------------------------------------------------------
-% Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter);
-for k=1:double(nchild)
-	[Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
-end
-
-end
-
-%--------------------------------------------------------------------------
 function [Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneStimRecord(fh, Level, Counter);
+[s, Counter]=getOneStimRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -562,7 +524,7 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneStimRecord(fh, Level, Counter)
+function [rec, Counter]=getOneStimRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
@@ -1021,7 +983,7 @@ return
 end
 
 %--------------------------------------------------------------------------
-function [res intflag]=LocalGetRes(fmt)
+function [res, intflag]=LocalGetRes(fmt)
 %--------------------------------------------------------------------------
 switch fmt
 	case {'int16' 'int32'}
