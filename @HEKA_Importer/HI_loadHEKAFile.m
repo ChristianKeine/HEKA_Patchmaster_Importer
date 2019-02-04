@@ -19,9 +19,6 @@ end
     %% CALL IMPORT FUNCTION
     data = obj.HI_ImportHEKAtoMat;
 
-%     for i = length(data):-1:1
-%         dCollapse(1:length(data{i}))= data{i};
-%     end
     
     % EXTRACT DATA AND SORT INFORMATION FROM TREE STRUCTURES
     obj.HI_SplitSeries(data);
