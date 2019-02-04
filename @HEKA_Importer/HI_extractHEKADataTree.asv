@@ -7,7 +7,6 @@ function HI_extractHEKADataTree(obj)
 % 
 % See also	HEKA_Importer
 % 			HEKA_Importer.HI_loadHEKAFile 
-% 			HEKA_Importer.HI_SplitSeries
 % 			HEKA_Importer.HI_ImportHEKAtoMat 			
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
@@ -88,6 +87,8 @@ Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 Temperature = NaN(nRecs,1);
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
+ChName = cell(nRecs,1);
+SR = NaN(nRecs,1);
 RecModeID = cell(nRecs,1);
 ExternalSolutionID = cell(nRecs,1);
 InternalSolutionID = cell(nRecs,1);
@@ -101,9 +102,9 @@ Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
 % NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
 % RECORDING
 TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
-ChUnits{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrYUnit};
-ChNames{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrLabel};
-SR(iR,:) = 1/{Recs(iR).Sweeps(1).Traces(:).TrXInterval};
+ChUnit{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrYUnit};
+ChName{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrLabel};
+SR(iR,:) = 1/(Recs(iR).Sweeps(1).Traces(1).TrXInterval);
 
 RecModeID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrRecordingMode];
 RecordingMode{iR,:} = reshape(RecModeNames(RecModeID{iR}+1),1,numel(RecModeID{iR,:}));
@@ -114,78 +115,7 @@ InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrInternalSolution];
 end
 
 
-
-
-
-
-%%
-% % FIND RECORDINGS IN THIS EXPERIMENT GROUP
-% recIDs = find(~cellfun(@isempty,tree(:,3)));
-% recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
-% nRecs = numel(recIDs);
-% 
-% 
-% ExperimentName = repmat(tree{thisExpID,2}.GrLabel,nRecs,1);
-% ExperimentNumber = repmat(ExpNum,nRecs,1);
-% recNum = reshape(1:nRecs,nRecs,1);
-% 
-% % GET RECORDINGS OF THIS EXPERIMENT
-% Recs = [tree{recIDs,3}];
-% 
-% %EXTRACT INFORMATION FROM LEVEL 3
-% Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
-% comment = reshape({Recs(:).SeComment},numel(Recs),1);
-% nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
-% 
-% %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
-% AmpState = [Recs(:).SeAmplifierState];
-% Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
-% Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
-% Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
-% RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
-% Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
-% 
-% % FOR NOW ASSUME SWEEP INFORMATION AND CHANNEL INFORMATION ARE NOT CHANGING
-% % BETWEEN SWEEPS
-% 
-% % EXTRACT RECORDING TEMPERATURE FROM SERIES/SWEEP, LEVEL 4
-% SweepStruct = [tree{recIDs+1,4}];
-% Temperature = reshape([SweepStruct(:).SwTemperature],numel(SweepStruct),1);
-% 
-% %EXTRACT INFORMATION FROM TRACE, LEVEL 5
-% % FIND ALL CHANNELS BUT ONLY EXTRACT INFORMATION FROM FIRST SWEEP
-% sweepIDs = recIDs+1;
-% 
-% startTr = sweepIDs; endTr = [recIDs(2:end)-1;size(tree,1)];
-% 
-% xUnit = cell(nRecs,1);
-% yUnit = cell(nRecs,1);
-% RecModeID = cell(nRecs,1);
-% ExternalSolution = cell(nRecs,1);
-% InternalSolution = cell(nRecs,1);
-% 
-% RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp'};
-% 
-% for iRec = 1:numel(recIDs)
-%     TraceStruct = [tree{startTr(iRec):endTr(iRec),5}];
-%     xUnit{iRec} = {TraceStruct(:).TrXUnit};
-%     yUnit{iRec} = {TraceStruct(:).TrYUnit};
-%     RecModeID{iRec} = {TraceStruct(:).TrRecordingMode};
-%     ExternalSolution{iRec} = {TraceStruct(:).TrExternalSolution};
-%     InternalSolution{iRec} = {TraceStruct(:).TrInternalSolution};
-%     
-% end
-% 
-% % TraceStruct = [tree{recIDs+2,5}];
-% % xUnit = reshape([TraceStruct(:).TrXUnit],numel(TraceStruct),1);
-% % yUnit = reshape([TraceStruct(:).TrYUnit],numel(TraceStruct),1);
-% % RecModeID = reshape([TraceStruct(:).TrRecordingMode],numel(TraceStruct),1);
-% % ExternalSolution = reshape([TraceStruct(:).TrExternalSolution],numel(SweepStruct),1);
-% % InternalSolution = reshape([TraceStruct(:).TrInternalSolution],numel(SweepStruct),1);
-% 
-% RecordingMode = reshape(RecModeNames(RecModeID+1),numel(RecModeID),1);
-
-
+% COMPILE DATA IN TABLE
 RecTab = table(ExperimentNumber,...
     ExperimentName,...
     recNum,...
@@ -198,14 +128,30 @@ RecTab = table(ExperimentNumber,...
     Stimulus,...
     TimeUnit,...
     ChUnit,...
+	ChName,...
     comment,...
     RecordingMode,...
     Temperature,...
     ExternalSolutionID,...
     InternalSolutionID,...
-    'VariableNames',{'Experiment','ExperimentName','Rec','Rs','Cm','nSweeps','Vhold','Rs_uncomp','RsFractionComp','Stimulus','TimeUnit','ChUnit','comment','RecMode','Temperature','ExternalSolution','InternalSolution'});
-
-
+	SR,...
+    'VariableNames',{'Experiment',...
+					'ExperimentName',...
+					'Rec',...
+					'Rs',...
+					'Cm',...
+					'nSweeps',...
+					'Vhold',...
+					'Rs_uncomp',...
+					'RsFractionComp',...
+					'Stimulus',...
+					'TimeUnit',...
+					'ChUnit',...
+					'ChName',...
+					'comment',...
+					'RecMode',...
+					'Temperature',...
+	'ExternalSolution','InternalSolution','SR'});
 
 
 end
