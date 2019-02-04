@@ -1,22 +1,12 @@
-function [dataTree, matData, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
+function obj=HI_ImportHEKAtoMat(obj)
 % ImportHEKA imports HEKA PatchMaster and ChartMaster .DAT files
-%
-% Example:
-% OUTPUTFILE=ImportHEKA(FILENAME)
-% OUTPUTFILE=ImportHEKA(FILENAME, TARGETPATH)
-%
-% FILENAME is the path and name of the HEKA DAT file to import.
-%
-% The kcl file generated will be placed in TARGETPATH if supplied. If not,
-% the file will be created in the directory taken from FILENAME.
+% Filepath is taken from the input object.
 %
 % ImportHEKA has been tested with Windows generated .DAT files on Windows,
 % Linux and Mac OS10.4.
 %
 % Both bundled and unbundled data files are supported. If your files are
 % unbundled, they must all be in the same folder.
-%
-%
 %
 % Details of the HEKA file format are available from
 %       ftp://server.hekahome.de/pub/FileFormat/Patchmasterv9/
@@ -35,60 +25,67 @@ function [dataTree, matData, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
 % 12.08.15 Don't save *.kcl file (line 793 commented out).
 % 03.07.17 Modified by Samata Katta to read in stimulus parameters from
 % .pgf section of .dat file.
-% 01.01.2019 Modified by Christian Keine to read solution parameters from 
+% 01.01.2019 Modified by Christian Keine to read solution parameters from
 % .sol section of .dat file.
+% 04.02.2019: combine readout of dataTree, stimTree and solTree.
 
+% thisfile = obj.opt.filepath;
 
-thisfile = obj.opt.filepath;
-
-[pathname, filename, ext]=fileparts(thisfile);
-datafile=fullfile(pathname, [filename ext]);
+[pathname, filename, ext]=fileparts(obj.opt.filepath);
+% datafile=fullfile(pathname, [filename ext]);
 
 % Open file and get bundle header. Assume little-endian to begin with
 endian='ieee-le';
-fh=fopen(datafile, 'r', endian);
+fh=fopen(obj.opt.filepath, 'r', endian);
 [bundle, littleendianflag, isBundled]=getBundleHeader(fh);
 
 % Big endian so repeat process
 if ~isempty(littleendianflag) && littleendianflag==false
-    fclose(fh);
-    endian='ieee-be';
-    fh=fopen(datafile, 'r', endian);
-    bundle=getBundleHeader(fh);
+	fclose(fh);
+	endian='ieee-be';
+	fh=fopen(obj.opt.filepath, 'r', endian);
+	bundle=getBundleHeader(fh);
 end
 
+%% GET DATA, STIM AND SOLUTION TREE
 
-%% GET DATA TREE FROM PULSE FILE
-if isBundled
-%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
-    ext={bundle.oBundleItems.oExtension};
-    % Find the pulse data
-    idx=strcmp('.pul', ext);%15.08.2012 - change from strmatch
-    start=bundle.oBundleItems(idx).oStart;
-else
-    % Or open pulse file if not bundled
-    fclose(fh);
-    start=0;
-    fh=fopen(fullfile(pathname, [filename, '.pul']), 'r', endian);
+fileExt = {'.pul','.pgf','.sol'};
+treeName = {'dataTree','stimTree','solTree'};
+
+for iidx = fileExt
+	if isBundled
+		%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
+		ext={bundle.oBundleItems.oExtension};
+		% Find the pulse data
+		idx=strcmp(iidx, ext);%15.08.2012 - change from strmatch
+		start=bundle.oBundleItems(idx).oStart;
+	else
+		% Or open pulse file if not bundled
+		fclose(fh);
+		start=0;
+		fh=fopen(fullfile(pathname, [filename, iidx{1}]), 'r', endian);
+	end
+	
+	% READ OUT TREE
+	fseek(fh, start, 'bof');
+	Magic = fread(fh, 4, 'uint8=>char');
+	Levels=fread(fh, 1, 'int32=>int32');
+	Sizes=fread(fh, double(Levels), 'int32=>int32');
+	
+	% Get the data tree form the pulse file
+	Position=ftell(fh);
+	
+	obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
+	
 end
 
-% Base of tree
-fseek(fh, start, 'bof');
-Magic = fread(fh, 4, 'uint8=>char');
-Levels=fread(fh, 1, 'int32=>int32');
-Sizes=fread(fh, double(Levels), 'int32=>int32');
-
-% Get the data tree form the pulse file
-Position=ftell(fh);
-dataTree=getDataTree(fh, Sizes, Position);
-
-%% GET STIMULUS TREE FROM PGF FILE
+%% GET DATA
 if isBundled
-    ext={bundle.oBundleItems(1:12).oExtension};
-    % Find the pgf data
-    idx=strcmp('.pgf', ext);%15.08.2012 - change from strmatch
-    start=bundle.oBundleItems(idx).oStart;
+	% Set offset for data
+	idx=strcmp('.dat', ext);%15.08.2012 - change from strmatch
+	start=bundle.oBundleItems(idx).oStart;
 else
+<<<<<<< HEAD
     % Or open pgf file if not bundled
     fclose(fh);
     start=0;
@@ -140,99 +137,125 @@ else
     fclose(fh);
     fh=fopen(datafile, 'r', endian);
     start=bundle.BundleHeaderSize;
+=======
+	% Or open data file if not bundled
+	fclose(fh);
+	fh=fopen(obj.opt.filepath, 'r', endian);
+	start=bundle.BundleHeaderSize;
+>>>>>>> 7edf404fd30c66290a9d1dac04d4fd46562789ed
 end
 
 % Now set pointer to the start of the data the data
 fseek(fh, start, 'bof');
 
-
 % Get the group headers into a structure array
 ngroup=1;
-for k=1:size(dataTree,1)
-    if ~isempty(dataTree{k, 2})
-        grp_row(ngroup)=k; %#ok<AGROW>
-        ngroup=ngroup+1;
-    end
+for k=1:size(obj.trees.dataTree,1)
+	if ~isempty(obj.trees.dataTree{k, 2})
+		grp_row(ngroup)=k;  %#ok<AGROW>
+		ngroup=ngroup+1;
+	end
 end
 
+% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION; ADD TO ALL CHANNELS
+addEPS = @(x) x+randn(size(x))*eps;
 
 % For each group
-channelnumber=1;
-matData = cell(size(grp_row));
-for grp=1:numel(grp_row)
-    [channelnumber, matData{grp}]=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row, channelnumber);
+matData2 = cell(numel(grp_row),1);
+dataRaw = cell(numel(grp_row),1);
+
+for iGr = 1:numel(grp_row)
+	matData2{iGr}=LocalImportGroup(fh, obj.trees.dataTree, iGr, grp_row);
+
+	for iSer = 1:numel(matData2{iGr})
+		dataRaw{iGr,:}{iSer,:} = cellfun(addEPS,matData2{iGr}{iSer},'UniformOutput',false);
+	end
+		
 end
 
+obj.RecTable.dataRaw = vertcat(dataRaw{:});
+obj.RecTable = struct2table(obj.RecTable);
 
 end
 
 %--------------------------------------------------------------------------
-function [h littleendianflag isBundled]=getBundleHeader(fh)
+function [h, littleendianflag, isBundled]=getBundleHeader(fh)
 %--------------------------------------------------------------------------
 % Get the bundle header from a HEKA .dat file
 fseek(fh, 0, 'bof');
 h.oSignature=deblank(fread(fh, 8, 'uint8=>char')');
 switch h.oSignature
-    case 'DATA'
-        % Old format: nothing to do
-        h.oVersion=[];
-        h.oTime=[];
-        h.oItems=[];
-        h.oIsLittleEndian=[];
-        h.oBundleItems(1:12)=[];
-        h.BundleHeaderSize=0;
-        isBundled=false;
-    case {'DAT1' 'DAT2'}
-        % Newer format
-        h.oVersion=fread(fh, 32, 'uint8=>char')';
-        h.oTime=fread(fh, 1, 'double');
-        h.oItems=fread(fh, 1, 'int32=>int32');
-        h.oIsLittleEndian=fread(fh, 1, 'uint8=>logical');
-        h.BundleHeaderSize=256;
-        switch h.oSignature
-            case 'DAT1'
-                h.oBundleItems=[];
-                isBundled=false;
-            case {'DAT2'}
-                fseek(fh, 64, 'bof');
-                for k=1:12
-                    h.oBundleItems(k).oStart=fread(fh, 1, 'int32=>int32');
-                    h.oBundleItems(k).oLength=fread(fh, 1, 'int32=>int32');
-                    h.oBundleItems(k).oExtension=deblank(fread(fh, 8, 'uint8=>char')');
-                    h.oBundleItems(k).BundleItemSize=16;
-                end
-                isBundled=true;
-        end
-    otherwise
-        error('This legacy file format is not supported');
+	case 'DATA'
+		% Old format: nothing to do
+		h.oVersion=[];
+		h.oTime=[];
+		h.oItems=[];
+		h.oIsLittleEndian=[];
+		h.oBundleItems(1:12)=[];
+		h.BundleHeaderSize=0;
+		isBundled=false;
+	case {'DAT1' 'DAT2'}
+		% Newer format
+		h.oVersion=fread(fh, 32, 'uint8=>char')';
+		h.oTime=fread(fh, 1, 'double');
+		h.oItems=fread(fh, 1, 'int32=>int32');
+		h.oIsLittleEndian=fread(fh, 1, 'uint8=>logical');
+		h.BundleHeaderSize=256;
+		switch h.oSignature
+			case 'DAT1'
+				h.oBundleItems=[];
+				isBundled=false;
+			case {'DAT2'}
+				fseek(fh, 64, 'bof');
+				for k=1:12
+					h.oBundleItems(k).oStart=fread(fh, 1, 'int32=>int32');
+					h.oBundleItems(k).oLength=fread(fh, 1, 'int32=>int32');
+					h.oBundleItems(k).oExtension=deblank(fread(fh, 8, 'uint8=>char')');
+					h.oBundleItems(k).BundleItemSize=16;
+				end
+				isBundled=true;
+		end
+	otherwise
+		error('This legacy file format is not supported');
 end
 littleendianflag=h.oIsLittleEndian;
 
 end
 
+
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getDataTree(fh, Sizes, Position)
+function [Tree, Counter]=getTree(fh, Sizes, Position, ext)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
-[Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0);
+[Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0, ext);
 end
 
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
+
+function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Position, Counter, ext)
 %--------------------------------------------------------------------------
 % Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneLevel(fh, Tree, Sizes, Level, Position, Counter);
+
+switch ext
+	case '.pul'
+		[Tree, Position, Counter, nchild]=getOneDataLevel(fh, Tree, Sizes, Level, Position, Counter);
+	case '.pgf'
+		[Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter);
+	case '.sol'
+		[Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter);
+end
+
 for k=1:double(nchild)
-    [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
+	[Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter, ext);
 end
 
 end
+
 
 %--------------------------------------------------------------------------
-function [Tree, Position, Counter, nchild]=getOneLevel(fh, Tree, Sizes, Level, Position, Counter)
+function [Tree, Position, Counter, nchild]=getOneDataLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneRecord(fh, Level, Counter);
+[s, Counter]=getOneRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -241,23 +264,23 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneRecord(fh, Level, Counter)
+function [rec, Counter]=getOneRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
 switch Level
-    case 0
-        rec=getRoot(fh);
-    case 1
-        rec=getGroup(fh);
-    case 2
-        rec=getSeries(fh);
-    case 3
-        rec=getSweep(fh);
-    case 4
-        rec=getTrace(fh);
-    otherwise
-        error('Unexpected Level');
+	case 0
+		rec=getRoot(fh);
+	case 1
+		rec=getGroup(fh);
+	case 2
+		rec=getSeries(fh);
+	case 3
+		rec=getSweep(fh);
+	case 4
+		rec=getTrace(fh);
+	otherwise
+		error('Unexpected Level');
 end
 end
 
@@ -320,8 +343,8 @@ s.SeTime=fread(fh, 1, 'double=>double') ;%               = 136; (* LONGREAL *)
 s.SeTimeMATLAB=time2date(s.SeTime);
 s.SePageWidth=fread(fh, 1, 'double=>double') ;%          = 144; (* LONGREAL *)
 for k=1:4
-    s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-    s.SeSwUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+	s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+	s.SeSwUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 end
 s.SeFiller4=fread(fh, 32, 'uint8=>uint8');%         = 312; (* 32 BYTE *)
 s.SeSeUserParams=fread(fh, 4, 'double=>double');%       = 344; (* ARRAY[0..3] OF LONGREAL *)
@@ -329,18 +352,18 @@ s.SeLockInParams=getSeLockInParams(fh);%       = 376; (* SeLockInSize = 96, see 
 s.SeAmplifierState=getAmplifierState(fh);%     = 472; (* AmplifierStateSize = 400 *)
 s.SeUsername=deblank(fread(fh, 80, 'uint8=>char')');%           = 872; (* String80Type *)
 for k=1:4
-    s.SeSeUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');% (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-    s.SeSeUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
-end                                                  
+	s.SeSeUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');% (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
+	s.SeSeUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+end
 s.SeFiller5=fread(fh, 1, 'int32=>int32');%         = 1112; (* INT32 *)
 s.SeCRC=fread(fh, 1, 'int32=>int32');%                = 1116; (* CARD32 *)
 
 % Added 15.08.2012
 s.SeSeUserParams2=fread(fh, 4, 'double=>double');
 for k=1:4
-    s.SeSeUserParamDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-    s.SeSeUserParamDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
-end 
+	s.SeSeUserParamDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+	s.SeSeUserParamDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+end
 s.SeScanParams=fread(fh, 96, 'uint8=>uint8');
 s.SeriesRecSize=1408;%      (* = 176 * 8 *)
 s=orderfields(s);
@@ -444,29 +467,10 @@ end
 
 %% GET SOLUTION TREE
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getSolutionTree(fh, Sizes, Position)
-%--------------------------------------------------------------------------
-% Main entry point for loading tree
-[Tree, Counter]=getSolutionTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-
-end
-
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
-%--------------------------------------------------------------------------
-% Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter);
-for k=1:double(nchild)
-    [Tree, Position, Counter]=getSolutionTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
-end
-
-end
-
-%--------------------------------------------------------------------------
 function [Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneSolutionRecord(fh, Level, Counter);
+[s, Counter]=getOneSolutionRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -476,20 +480,20 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneSolutionRecord(fh, Level, Counter)
+function [rec, Counter]=getOneSolutionRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
 switch Level
-    case 0
-        rec=getSolutionRoot(fh);
-    case 1
-        rec=getSolution(fh);
-    case 2
-        rec=getChemical(fh);
-
-    otherwise
-        error('Unexpected Level');
+	case 0
+		rec=getSolutionRoot(fh);
+	case 1
+		rec=getSolution(fh);
+	case 2
+		rec=getChemical(fh);
+		
+	otherwise
+		error('Unexpected Level');
 end
 
 end
@@ -511,15 +515,15 @@ end
 function s=getSolution(fh)
 %--------------------------------------------------------------------------
 % Stimulus level
-   s.SoNumber=fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
-   s.SoName=deblank(fread(fh, 80, 'uint8=>char')');%           =   4; (* SolutionNameSize  *)
-   s.SoNumeric=fread(fh, 1, 'real*4=>double');%             =  84; (* REAL *) *)
-   s.SoNumericName=deblank(fread(fh, 30, 'uint8=>char')');%             =  88; (* ChemicalNameSize *)
-   s.SoPH=fread(fh, 1, 'real*4=>double');%    = 118; (* REAL *)
-   s.SopHCompound=deblank(fread(fh, 30, 'uint8=>char')');%      = 122; (* ChemicalNameSize *)
-   s.soOsmol=fread(fh, 1, 'real*4=>double'); %152; (* REAL *)
-   s.SoCRC=fread(fh, 1, 'int32=>int32') ;%     = 156; (* CARD32 *)
-   s.SolutionSize=160;%      = 160
+s.SoNumber=fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
+s.SoName=deblank(fread(fh, 80, 'uint8=>char')');%           =   4; (* SolutionNameSize  *)
+s.SoNumeric=fread(fh, 1, 'real*4=>double');%             =  84; (* REAL *) *)
+s.SoNumericName=deblank(fread(fh, 30, 'uint8=>char')');%             =  88; (* ChemicalNameSize *)
+s.SoPH=fread(fh, 1, 'real*4=>double');%    = 118; (* REAL *)
+s.SopHCompound=deblank(fread(fh, 30, 'uint8=>char')');%      = 122; (* ChemicalNameSize *)
+s.soOsmol=fread(fh, 1, 'real*4=>double'); %152; (* REAL *)
+s.SoCRC=fread(fh, 1, 'int32=>int32') ;%     = 156; (* CARD32 *)
+s.SolutionSize=160;%      = 160
 
 s=orderfields(s);
 
@@ -528,12 +532,12 @@ end
 %--------------------------------------------------------------------------
 function c=getChemical(fh)
 %--------------------------------------------------------------------------
-   c.ChConcentration=fread(fh, 1, 'real*4=>double');%               =  0; (* REAL *)
-   c.ChName=deblank(fread(fh, 30, 'uint8=>char')');%      =   4; (* ChemicalNameSize *)
-   c.ChSpare1=fread(fh, 1, 'int16=>int16');%  =   34; (* INT16 *)
-   c.ChCRC=fread(fh, 1, 'int32=>int32')';%              36; (* CARD32 *)
-   c.ChemicalSize=40;%         =  40
-   
+c.ChConcentration=fread(fh, 1, 'real*4=>double');%               =  0; (* REAL *)
+c.ChName=deblank(fread(fh, 30, 'uint8=>char')');%      =   4; (* ChemicalNameSize *)
+c.ChSpare1=fread(fh, 1, 'int16=>int16');%  =   34; (* INT16 *)
+c.ChCRC=fread(fh, 1, 'int32=>int32')';%              36; (* CARD32 *)
+c.ChemicalSize=40;%         =  40
+
 c=orderfields(c);
 
 end
@@ -541,29 +545,10 @@ end
 
 %% GET STIMULUS TREE
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getStimTree(fh, Sizes, Position)
-%--------------------------------------------------------------------------
-% Main entry point for loading tree
-[Tree, Counter]=getStimTreeReentrant(fh, {}, Sizes, 0, Position, 0);
-
-end
-
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
-%--------------------------------------------------------------------------
-% Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter);
-for k=1:double(nchild)
-    [Tree, Position, Counter]=getStimTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
-end
-
-end
-
-%--------------------------------------------------------------------------
 function [Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneStimRecord(fh, Level, Counter);
+[s, Counter]=getOneStimRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -573,21 +558,21 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneStimRecord(fh, Level, Counter)
+function [rec, Counter]=getOneStimRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
 switch Level
-    case 0
-        rec=getStimRoot(fh);
-    case 1
-        rec=getStimulation(fh);
-    case 2
-        rec=getChannel(fh);
-    case 3
-        rec=getStimSegment(fh);
-    otherwise
-        error('Unexpected Level');
+	case 0
+		rec=getStimRoot(fh);
+	case 1
+		rec=getStimulation(fh);
+	case 2
+		rec=getChannel(fh);
+	case 3
+		rec=getStimSegment(fh);
+	otherwise
+		error('Unexpected Level');
 end
 
 end
@@ -605,11 +590,11 @@ p.RoMaxSamples=fread(fh, 1, 'int32=>int32'); %        =  40; (* INT32 *)
 p.RoFiller1 = fread(fh, 1, 'int32=>int32');%          =  44; (* INT32 *)
 p.RoParams = fread(fh, 10, 'double=>double');%             =  48; (* ARRAY[0..9] OF LONGREAL *)
 for k=1:10
-    p.RoParamText{k}=deblank(fread(fh, 32, 'uint8=>char')');%        = 128; (* ARRAY[0..9],[0..31]OF CHAR *)
+	p.RoParamText{k}=deblank(fread(fh, 32, 'uint8=>char')');%        = 128; (* ARRAY[0..9],[0..31]OF CHAR *)
 end
 p.RoReserved =  fread(fh, 32, 'int32=>int32');%          = 448; (* INT32 *)
 p.RoFiller2= fread(fh, 1, 'int32=>int32');%        = 576; (* INT32 *)
-p.RoCRC= fread(fh, 1, 'int32=>int32');%                = 580; (* CARD32 *)   
+p.RoCRC= fread(fh, 1, 'int32=>int32');%                = 580; (* CARD32 *)
 p.RootRecSize= 584; %      (* = 73 * 8 *)
 p=orderfields(p);
 
@@ -619,43 +604,43 @@ end
 function s=getStimulation(fh)
 %--------------------------------------------------------------------------
 % Stimulus level
-   s.stMark=fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
-   s.stEntryName=deblank(fread(fh, 32, 'uint8=>char')');%           =   4; (* String32Type *)
-   s.stFileName=deblank(fread(fh, 32, 'uint8=>char')');%             =  36; (* String32Type *)
-   s.stAnalName=deblank(fread(fh, 32, 'uint8=>char')');%             =  68; (* String32Type *)
-   s.stDataStartSegment=fread(fh, 1, 'int32=>int32');%    = 100; (* INT32 *)
-   s.stDataStartTime=fread(fh, 1, 'double=>double') ;%      = 104; (* LONGREAL *)
-   s.stDataStartTimeMATLAB=time2date(s.stDataStartTime);
-   s.stSampleInterval=fread(fh, 1, 'double=>double') ;%     = 112; (* LONGREAL *)
-   s.stSweepInterval=fread(fh, 1, 'double=>double') ;%      = 120; (* LONGREAL *)
-   s.stLeakDelay=fread(fh, 1, 'double=>double') ;%          = 128; (* LONGREAL *)
-   s.stFilterFactor=fread(fh, 1, 'double=>double') ;%       = 136; (* LONGREAL *)
-   s.stNumberSweeps=fread(fh, 1, 'int32=>int32');%        = 144; (* INT32 *)
-   s.stNumberLeaks=fread(fh, 1, 'int32=>int32');%         = 148; (* INT32 *)
-   s.stNumberAverages=fread(fh, 1, 'int32=>int32');%      = 152; (* INT32 *)
-   s.stActualAdcChannels=fread(fh, 1, 'int32=>int32');%   = 156; (* INT32 *)
-   s.stActualDacChannels=fread(fh, 1, 'int32=>int32');%   = 160; (* INT32 *)
-   s.stExtTrigger=fread(fh, 1, 'uint8=>uint8');%          = 164; (* BYTE *)
-   s.stNoStartWait=fread(fh, 1, 'uint8=>logical');%        = 165; (* BOOLEAN *)
-   s.stUseScanRates=fread(fh, 1, 'uint8=>logical');%       = 166; (* BOOLEAN *)
-   s.stNoContAq=fread(fh, 1, 'uint8=>logical');%           = 167; (* BOOLEAN *)
-   s.stHasLockIn=fread(fh, 1, 'uint8=>logical');%          = 168; (* BOOLEAN *)
-      s.stOldStartMacKind=fread(fh, 1, 'uint8=>char');% = 169; (* CHAR *)
-      s.stOldEndMacKind=fread(fh, 1, 'uint8=>logical');%   = 170; (* BOOLEAN *)
-   s.stAutoRange=fread(fh, 1, 'uint8=>uint8');%          = 171; (* BYTE *)
-   s.stBreakNext=fread(fh, 1, 'uint8=>logical');%          = 172; (* BOOLEAN *)
-   s.stIsExpanded=fread(fh, 1, 'uint8=>logical');%         = 173; (* BOOLEAN *)
-   s.stLeakCompMode=fread(fh, 1, 'uint8=>logical');%       = 174; (* BOOLEAN *)
-   s.stHasChirp=fread(fh, 1, 'uint8=>logical');%           = 175; (* BOOLEAN *)
-      s.stOldStartMacro=deblank(fread(fh, 32, 'uint8=>char')');%   = 176; (* String32Type *)
-      s.stOldEndMacro=deblank(fread(fh, 32, 'uint8=>char')');%     = 208; (* String32Type *)
-   s.sIsGapFree=fread(fh, 1, 'uint8=>logical');%           = 240; (* BOOLEAN *)
-   s.sHandledExternally=fread(fh, 1, 'uint8=>logical');%   = 241; (* BOOLEAN *)
-      s.stFiller1=fread(fh, 1, 'uint8=>logical');%         = 242; (* BOOLEAN *)
-      s.stFiller2=fread(fh, 1, 'uint8=>logical');%         = 243; (* BOOLEAN *)
-   s.stCRC=fread(fh, 1, 'int32=>int32'); %                = 244; (* CARD32 *)
-   s.stTag=deblank(fread(fh, 32, 'uint8=>char')');%                = 248; (* String32Type *)
-   s.StimulationRecSize   = 280;%      (* = 35 * 8 *)
+s.stMark=fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
+s.stEntryName=deblank(fread(fh, 32, 'uint8=>char')');%           =   4; (* String32Type *)
+s.stFileName=deblank(fread(fh, 32, 'uint8=>char')');%             =  36; (* String32Type *)
+s.stAnalName=deblank(fread(fh, 32, 'uint8=>char')');%             =  68; (* String32Type *)
+s.stDataStartSegment=fread(fh, 1, 'int32=>int32');%    = 100; (* INT32 *)
+s.stDataStartTime=fread(fh, 1, 'double=>double') ;%      = 104; (* LONGREAL *)
+s.stDataStartTimeMATLAB=time2date(s.stDataStartTime);
+s.stSampleInterval=fread(fh, 1, 'double=>double') ;%     = 112; (* LONGREAL *)
+s.stSweepInterval=fread(fh, 1, 'double=>double') ;%      = 120; (* LONGREAL *)
+s.stLeakDelay=fread(fh, 1, 'double=>double') ;%          = 128; (* LONGREAL *)
+s.stFilterFactor=fread(fh, 1, 'double=>double') ;%       = 136; (* LONGREAL *)
+s.stNumberSweeps=fread(fh, 1, 'int32=>int32');%        = 144; (* INT32 *)
+s.stNumberLeaks=fread(fh, 1, 'int32=>int32');%         = 148; (* INT32 *)
+s.stNumberAverages=fread(fh, 1, 'int32=>int32');%      = 152; (* INT32 *)
+s.stActualAdcChannels=fread(fh, 1, 'int32=>int32');%   = 156; (* INT32 *)
+s.stActualDacChannels=fread(fh, 1, 'int32=>int32');%   = 160; (* INT32 *)
+s.stExtTrigger=fread(fh, 1, 'uint8=>uint8');%          = 164; (* BYTE *)
+s.stNoStartWait=fread(fh, 1, 'uint8=>logical');%        = 165; (* BOOLEAN *)
+s.stUseScanRates=fread(fh, 1, 'uint8=>logical');%       = 166; (* BOOLEAN *)
+s.stNoContAq=fread(fh, 1, 'uint8=>logical');%           = 167; (* BOOLEAN *)
+s.stHasLockIn=fread(fh, 1, 'uint8=>logical');%          = 168; (* BOOLEAN *)
+s.stOldStartMacKind=fread(fh, 1, 'uint8=>char');% = 169; (* CHAR *)
+s.stOldEndMacKind=fread(fh, 1, 'uint8=>logical');%   = 170; (* BOOLEAN *)
+s.stAutoRange=fread(fh, 1, 'uint8=>uint8');%          = 171; (* BYTE *)
+s.stBreakNext=fread(fh, 1, 'uint8=>logical');%          = 172; (* BOOLEAN *)
+s.stIsExpanded=fread(fh, 1, 'uint8=>logical');%         = 173; (* BOOLEAN *)
+s.stLeakCompMode=fread(fh, 1, 'uint8=>logical');%       = 174; (* BOOLEAN *)
+s.stHasChirp=fread(fh, 1, 'uint8=>logical');%           = 175; (* BOOLEAN *)
+s.stOldStartMacro=deblank(fread(fh, 32, 'uint8=>char')');%   = 176; (* String32Type *)
+s.stOldEndMacro=deblank(fread(fh, 32, 'uint8=>char')');%     = 208; (* String32Type *)
+s.sIsGapFree=fread(fh, 1, 'uint8=>logical');%           = 240; (* BOOLEAN *)
+s.sHandledExternally=fread(fh, 1, 'uint8=>logical');%   = 241; (* BOOLEAN *)
+s.stFiller1=fread(fh, 1, 'uint8=>logical');%         = 242; (* BOOLEAN *)
+s.stFiller2=fread(fh, 1, 'uint8=>logical');%         = 243; (* BOOLEAN *)
+s.stCRC=fread(fh, 1, 'int32=>int32'); %                = 244; (* CARD32 *)
+s.stTag=deblank(fread(fh, 32, 'uint8=>char')');%                = 248; (* String32Type *)
+s.StimulationRecSize   = 280;%      (* = 35 * 8 *)
 
 s=orderfields(s);
 
@@ -664,77 +649,77 @@ end
 %--------------------------------------------------------------------------
 function c=getChannel(fh)
 %--------------------------------------------------------------------------
-   c.chMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
-   c.chLinkedChannel=fread(fh, 1, 'int32=>int32');%      =   4; (* INT32 *)
-   c.chCompressionFactor=fread(fh, 1, 'int32=>int32');%  =   8; (* INT32 *)
-   c.chYUnit=deblank(fread(fh, 8, 'uint8=>char')');%              =  12; (* String8Type *)
-   c.chAdcChannel=fread(fh, 1, 'int16=>int16');%         =  20; (* INT16 *)
-   c.chAdcMode=fread(fh, 1, 'uint8=>uint8');%            =  22; (* BYTE *)
-   c.chDoWrite=fread(fh, 1, 'uint8=>logical');%            =  23; (* BOOLEAN *)
-   c.stLeakStore=fread(fh, 1, 'uint8=>uint8');%          =  24; (* BYTE *)
-   c.chAmplMode=fread(fh, 1, 'uint8=>uint8');%           =  25; (* BYTE *)
-   c.chOwnSegTime=fread(fh, 1, 'uint8=>logical');%         =  26; (* BOOLEAN *)
-   c.chSetLastSegVmemb=fread(fh, 1, 'uint8=>logical');%    =  27; (* BOOLEAN *)
-   c.chDacChannel=fread(fh, 1, 'int16=>int16');%         =  28; (* INT16 *)
-   c.chDacMode=fread(fh, 1, 'uint8=>uint8');%            =  30; (* BYTE *)
-   c.chHasLockInSquare=fread(fh, 1, 'uint8=>uint8');%    =  31; (* BYTE *)
-   c.chRelevantXSegment=fread(fh, 1, 'int32=>int32');%   =  32; (* INT32 *)
-   c.chRelevantYSegment=fread(fh, 1, 'int32=>int32');%   =  36; (* INT32 *)
-   c.chDacUnit=deblank(fread(fh, 8, 'uint8=>char')');%            =  40; (* String8Type *)
-   c.chHolding=fread(fh, 1, 'double=>double') ;%            =  48; (* LONGREAL *)
-   c.chLeakHolding=fread(fh, 1, 'double=>double') ;%        =  56; (* LONGREAL *)
-   c.chLeakSize=fread(fh, 1, 'double=>double') ;%           =  64; (* LONGREAL *)
-   c.chLeakHoldMode=fread(fh, 1, 'uint8=>uint8');%       =  72; (* BYTE *)
-   c.chLeakAlternate=fread(fh, 1, 'uint8=>logical');%      =  73; (* BOOLEAN *)
-   c.chAltLeakAveraging=fread(fh, 1, 'uint8=>logical');%   =  74; (* BOOLEAN *)
-   c.chLeakPulseOn=fread(fh, 1, 'uint8=>logical');%        =  75; (* BOOLEAN *)
-   c.chStimToDacID=fread(fh, 1, 'int16=>int16');%        =  76; (* SET16 *)
-   c.chCompressionMode=fread(fh, 1, 'int16=>int16');%    =  78; (* SET16 *)
-   c.chCompressionSkip=fread(fh, 1, 'int32=>int32');%    =  80; (* INT32 *)
-   c.chDacBit=fread(fh, 1, 'int16=>int16');%             =  84; (* INT16 *)
-   c.chHasLockInSine=fread(fh, 1, 'uint8=>logical');%      =  86; (* BOOLEAN *)
-   c.chBreakMode=fread(fh, 1, 'uint8=>uint8');%          =  87; (* BYTE *)
-   c.chZeroSeg=fread(fh, 1, 'int32=>int32');%            =  88; (* INT32 *)
-      c.chFiller1=fread(fh, 1, 'int32=>int32');%         =  92; (* INT32 *)
-   c.chSine_Cycle=fread(fh, 1, 'double=>double') ;%         =  96; (* LONGREAL *)
-   c.chSine_Amplitude=fread(fh, 1, 'double=>double') ;%     = 104; (* LONGREAL *)
-   c.chLockIn_VReversal=fread(fh, 1, 'double=>double') ;%   = 112; (* LONGREAL *)
-   c.chChirp_StartFreq=fread(fh, 1, 'double=>double') ;%    = 120; (* LONGREAL *)
-   c.chChirp_EndFreq=fread(fh, 1, 'double=>double') ;%      = 128; (* LONGREAL *)
-   c.chChirp_MinPoints=fread(fh, 1, 'double=>double') ;%    = 136; (* LONGREAL *)
-   c.chSquare_NegAmpl=fread(fh, 1, 'double=>double') ;%     = 144; (* LONGREAL *)
-   c.chSquare_DurFactor=fread(fh, 1, 'double=>double') ;%   = 152; (* LONGREAL *)
-   c.chLockIn_Skip=fread(fh, 1, 'int32=>int32');%        = 160; (* INT32 *)
-   c.chPhoto_MaxCycles=fread(fh, 1, 'int32=>int32');%    = 164; (* INT32 *)
-   c.chPhoto_SegmentNo=fread(fh, 1, 'int32=>int32');%    = 168; (* INT32 *)
-   c.chLockIn_AvgCycles=fread(fh, 1, 'int32=>int32');%   = 172; (* INT32 *)
-   c.chImaging_RoiNo=fread(fh, 1, 'int32=>int32');%      = 176; (* INT32 *)
-   c.chChirp_Skip=fread(fh, 1, 'int32=>int32');%         = 180; (* INT32 *)
-   c.chChirp_Amplitude=fread(fh, 1, 'double=>double') ;%    = 184; (* LONGREAL *)
-   c.chPhoto_Adapt=fread(fh, 1, 'uint8=>uint8');%        = 192; (* BYTE *)
-   c.chSine_Kind=fread(fh, 1, 'uint8=>uint8');%          = 193; (* BYTE *)
-   c.chChirp_PreChirp=fread(fh, 1, 'uint8=>uint8');%     = 194; (* BYTE *)
-   c.chSine_Source=fread(fh, 1, 'uint8=>uint8');%        = 195; (* BYTE *)
-   c.chSquare_NegSource=fread(fh, 1, 'uint8=>uint8');%   = 196; (* BYTE *)
-   c.chSquare_PosSource=fread(fh, 1, 'uint8=>uint8');%   = 197; (* BYTE *)
-   c.chChirp_Kind=fread(fh, 1, 'uint8=>uint8');%         = 198; (* BYTE *)
-   c.chChirp_Source=fread(fh, 1, 'uint8=>uint8');%       = 199; (* BYTE *)
-   c.chDacOffset=fread(fh, 1, 'double=>double') ;%          = 200; (* LONGREAL *)
-   c.chAdcOffset=fread(fh, 1, 'double=>double') ;%          = 208; (* LONGREAL *)
-   c.chTraceMathFormat=fread(fh, 1, 'uint8=>uint8');%    = 216; (* BYTE *)
-   c.chHasChirp=fread(fh, 1, 'uint8=>logical');%           = 217; (* BOOLEAN *)
-   c.chSquare_Kind=fread(fh, 1, 'uint8=>uint8');%        = 218; (* BYTE *)
-      c.chFiller2=fread(fh,13,'uint8=>char');%         = 219; (* ARRAY[0..13] OF CHAR *)
-   c.chSquare_Cycle=fread(fh, 1, 'double=>double') ;%       = 232; (* LONGREAL *)
-   c.chSquare_PosAmpl=fread(fh, 1, 'double=>double') ;%     = 240; (* LONGREAL *)
-   c.chCompressionOffset=fread(fh, 1, 'int32=>int32');%  = 248; (* INT32 *)
-   c.chPhotoMode=fread(fh, 1, 'int32=>int32');%          = 252; (* INT32 *)
-   c.chBreakLevel=fread(fh, 1, 'double=>double') ;%         = 256; (* LONGREAL *)
-   c.chTraceMath=deblank(fread(fh,128,'uint8=>char')');%          = 264; (* String128Type *)
-   c.chOldCRC=fread(fh, 1, 'int32=>int32');%             = 268; (* CARD32 *)
-      c.chFiller3=fread(fh, 1, 'int32=>int32');%         = 392; (* INT32 *)
-   c.chCRC=fread(fh, 1, 'int32=>int32');%                = 396; (* CARD32 *)
-   c.ChannelRecSize       = 400;%     (* = 50 * 8 *)
+c.chMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
+c.chLinkedChannel=fread(fh, 1, 'int32=>int32');%      =   4; (* INT32 *)
+c.chCompressionFactor=fread(fh, 1, 'int32=>int32');%  =   8; (* INT32 *)
+c.chYUnit=deblank(fread(fh, 8, 'uint8=>char')');%              =  12; (* String8Type *)
+c.chAdcChannel=fread(fh, 1, 'int16=>int16');%         =  20; (* INT16 *)
+c.chAdcMode=fread(fh, 1, 'uint8=>uint8');%            =  22; (* BYTE *)
+c.chDoWrite=fread(fh, 1, 'uint8=>logical');%            =  23; (* BOOLEAN *)
+c.stLeakStore=fread(fh, 1, 'uint8=>uint8');%          =  24; (* BYTE *)
+c.chAmplMode=fread(fh, 1, 'uint8=>uint8');%           =  25; (* BYTE *)
+c.chOwnSegTime=fread(fh, 1, 'uint8=>logical');%         =  26; (* BOOLEAN *)
+c.chSetLastSegVmemb=fread(fh, 1, 'uint8=>logical');%    =  27; (* BOOLEAN *)
+c.chDacChannel=fread(fh, 1, 'int16=>int16');%         =  28; (* INT16 *)
+c.chDacMode=fread(fh, 1, 'uint8=>uint8');%            =  30; (* BYTE *)
+c.chHasLockInSquare=fread(fh, 1, 'uint8=>uint8');%    =  31; (* BYTE *)
+c.chRelevantXSegment=fread(fh, 1, 'int32=>int32');%   =  32; (* INT32 *)
+c.chRelevantYSegment=fread(fh, 1, 'int32=>int32');%   =  36; (* INT32 *)
+c.chDacUnit=deblank(fread(fh, 8, 'uint8=>char')');%            =  40; (* String8Type *)
+c.chHolding=fread(fh, 1, 'double=>double') ;%            =  48; (* LONGREAL *)
+c.chLeakHolding=fread(fh, 1, 'double=>double') ;%        =  56; (* LONGREAL *)
+c.chLeakSize=fread(fh, 1, 'double=>double') ;%           =  64; (* LONGREAL *)
+c.chLeakHoldMode=fread(fh, 1, 'uint8=>uint8');%       =  72; (* BYTE *)
+c.chLeakAlternate=fread(fh, 1, 'uint8=>logical');%      =  73; (* BOOLEAN *)
+c.chAltLeakAveraging=fread(fh, 1, 'uint8=>logical');%   =  74; (* BOOLEAN *)
+c.chLeakPulseOn=fread(fh, 1, 'uint8=>logical');%        =  75; (* BOOLEAN *)
+c.chStimToDacID=fread(fh, 1, 'int16=>int16');%        =  76; (* SET16 *)
+c.chCompressionMode=fread(fh, 1, 'int16=>int16');%    =  78; (* SET16 *)
+c.chCompressionSkip=fread(fh, 1, 'int32=>int32');%    =  80; (* INT32 *)
+c.chDacBit=fread(fh, 1, 'int16=>int16');%             =  84; (* INT16 *)
+c.chHasLockInSine=fread(fh, 1, 'uint8=>logical');%      =  86; (* BOOLEAN *)
+c.chBreakMode=fread(fh, 1, 'uint8=>uint8');%          =  87; (* BYTE *)
+c.chZeroSeg=fread(fh, 1, 'int32=>int32');%            =  88; (* INT32 *)
+c.chFiller1=fread(fh, 1, 'int32=>int32');%         =  92; (* INT32 *)
+c.chSine_Cycle=fread(fh, 1, 'double=>double') ;%         =  96; (* LONGREAL *)
+c.chSine_Amplitude=fread(fh, 1, 'double=>double') ;%     = 104; (* LONGREAL *)
+c.chLockIn_VReversal=fread(fh, 1, 'double=>double') ;%   = 112; (* LONGREAL *)
+c.chChirp_StartFreq=fread(fh, 1, 'double=>double') ;%    = 120; (* LONGREAL *)
+c.chChirp_EndFreq=fread(fh, 1, 'double=>double') ;%      = 128; (* LONGREAL *)
+c.chChirp_MinPoints=fread(fh, 1, 'double=>double') ;%    = 136; (* LONGREAL *)
+c.chSquare_NegAmpl=fread(fh, 1, 'double=>double') ;%     = 144; (* LONGREAL *)
+c.chSquare_DurFactor=fread(fh, 1, 'double=>double') ;%   = 152; (* LONGREAL *)
+c.chLockIn_Skip=fread(fh, 1, 'int32=>int32');%        = 160; (* INT32 *)
+c.chPhoto_MaxCycles=fread(fh, 1, 'int32=>int32');%    = 164; (* INT32 *)
+c.chPhoto_SegmentNo=fread(fh, 1, 'int32=>int32');%    = 168; (* INT32 *)
+c.chLockIn_AvgCycles=fread(fh, 1, 'int32=>int32');%   = 172; (* INT32 *)
+c.chImaging_RoiNo=fread(fh, 1, 'int32=>int32');%      = 176; (* INT32 *)
+c.chChirp_Skip=fread(fh, 1, 'int32=>int32');%         = 180; (* INT32 *)
+c.chChirp_Amplitude=fread(fh, 1, 'double=>double') ;%    = 184; (* LONGREAL *)
+c.chPhoto_Adapt=fread(fh, 1, 'uint8=>uint8');%        = 192; (* BYTE *)
+c.chSine_Kind=fread(fh, 1, 'uint8=>uint8');%          = 193; (* BYTE *)
+c.chChirp_PreChirp=fread(fh, 1, 'uint8=>uint8');%     = 194; (* BYTE *)
+c.chSine_Source=fread(fh, 1, 'uint8=>uint8');%        = 195; (* BYTE *)
+c.chSquare_NegSource=fread(fh, 1, 'uint8=>uint8');%   = 196; (* BYTE *)
+c.chSquare_PosSource=fread(fh, 1, 'uint8=>uint8');%   = 197; (* BYTE *)
+c.chChirp_Kind=fread(fh, 1, 'uint8=>uint8');%         = 198; (* BYTE *)
+c.chChirp_Source=fread(fh, 1, 'uint8=>uint8');%       = 199; (* BYTE *)
+c.chDacOffset=fread(fh, 1, 'double=>double') ;%          = 200; (* LONGREAL *)
+c.chAdcOffset=fread(fh, 1, 'double=>double') ;%          = 208; (* LONGREAL *)
+c.chTraceMathFormat=fread(fh, 1, 'uint8=>uint8');%    = 216; (* BYTE *)
+c.chHasChirp=fread(fh, 1, 'uint8=>logical');%           = 217; (* BOOLEAN *)
+c.chSquare_Kind=fread(fh, 1, 'uint8=>uint8');%        = 218; (* BYTE *)
+c.chFiller2=fread(fh,13,'uint8=>char');%         = 219; (* ARRAY[0..13] OF CHAR *)
+c.chSquare_Cycle=fread(fh, 1, 'double=>double') ;%       = 232; (* LONGREAL *)
+c.chSquare_PosAmpl=fread(fh, 1, 'double=>double') ;%     = 240; (* LONGREAL *)
+c.chCompressionOffset=fread(fh, 1, 'int32=>int32');%  = 248; (* INT32 *)
+c.chPhotoMode=fread(fh, 1, 'int32=>int32');%          = 252; (* INT32 *)
+c.chBreakLevel=fread(fh, 1, 'double=>double') ;%         = 256; (* LONGREAL *)
+c.chTraceMath=deblank(fread(fh,128,'uint8=>char')');%          = 264; (* String128Type *)
+c.chOldCRC=fread(fh, 1, 'int32=>int32');%             = 268; (* CARD32 *)
+c.chFiller3=fread(fh, 1, 'int32=>int32');%         = 392; (* INT32 *)
+c.chCRC=fread(fh, 1, 'int32=>int32');%                = 396; (* CARD32 *)
+c.ChannelRecSize       = 400;%     (* = 50 * 8 *)
 c=orderfields(c);
 
 end
@@ -742,23 +727,23 @@ end
 %--------------------------------------------------------------------------
 function ss=getStimSegment(fh)
 %--------------------------------------------------------------------------
-   ss.seMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
-   ss.seClass=fread(fh, 1, 'uint8=>uint8');%              =   4; (* BYTE *)
-   ss.seDoStore=fread(fh, 1, 'uint8=>logical');%            =   5; (* BOOLEAN *)
-   ss.seVoltageIncMode=fread(fh, 1, 'uint8=>uint8');%     =   6; (* BYTE *)
-   ss.seDurationIncMode=fread(fh, 1, 'uint8=>uint8');%    =   7; (* BYTE *)
-   ss.seVoltage=fread(fh, 1, 'double=>double');%            =   8; (* LONGREAL *)
-   ss.seVoltageSource=fread(fh, 1, 'int32=>int32');%      =  16; (* INT32 *)
-   ss.seDeltaVFactor=fread(fh, 1, 'double=>double');%       =  20; (* LONGREAL *)
-   ss.seDeltaVIncrement=fread(fh, 1, 'double=>double');%    =  28; (* LONGREAL *)
-   ss.seDuration=fread(fh, 1, 'double=>double');%           =  36; (* LONGREAL *)
-   ss.seDurationSource=fread(fh, 1, 'int32=>int32');%     =  44; (* INT32 *)
-   ss.seDeltaTFactor=fread(fh, 1, 'double=>double');%       =  48; (* LONGREAL *)
-   ss.seDeltaTIncrement=fread(fh, 1, 'double=>double');%    =  56; (* LONGREAL *)
-      ss.seFiller1=fread(fh, 1, 'int32=>int32');%         =  64; (* INT32 *)
-   ss.seCRC=fread(fh, 1, 'int32=>int32');%                =  68; (* CARD32 *)
-   ss.seScanRate=fread(fh, 1, 'double=>double');%           =  72; (* LONGREAL *)
-   ss.StimSegmentRecSize   =  80;%      (* = 10 * 8 *)
+ss.seMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
+ss.seClass=fread(fh, 1, 'uint8=>uint8');%              =   4; (* BYTE *)
+ss.seDoStore=fread(fh, 1, 'uint8=>logical');%            =   5; (* BOOLEAN *)
+ss.seVoltageIncMode=fread(fh, 1, 'uint8=>uint8');%     =   6; (* BYTE *)
+ss.seDurationIncMode=fread(fh, 1, 'uint8=>uint8');%    =   7; (* BYTE *)
+ss.seVoltage=fread(fh, 1, 'double=>double');%            =   8; (* LONGREAL *)
+ss.seVoltageSource=fread(fh, 1, 'int32=>int32');%      =  16; (* INT32 *)
+ss.seDeltaVFactor=fread(fh, 1, 'double=>double');%       =  20; (* LONGREAL *)
+ss.seDeltaVIncrement=fread(fh, 1, 'double=>double');%    =  28; (* LONGREAL *)
+ss.seDuration=fread(fh, 1, 'double=>double');%           =  36; (* LONGREAL *)
+ss.seDurationSource=fread(fh, 1, 'int32=>int32');%     =  44; (* INT32 *)
+ss.seDeltaTFactor=fread(fh, 1, 'double=>double');%       =  48; (* LONGREAL *)
+ss.seDeltaTIncrement=fread(fh, 1, 'double=>double');%    =  56; (* LONGREAL *)
+ss.seFiller1=fread(fh, 1, 'int32=>int32');%         =  64; (* INT32 *)
+ss.seCRC=fread(fh, 1, 'int32=>int32');%                =  68; (* CARD32 *)
+ss.seScanRate=fread(fh, 1, 'double=>double');%           =  72; (* LONGREAL *)
+ss.StimSegmentRecSize   =  80;%      (* = 10 * 8 *)
 ss=orderfields(ss);
 
 end
@@ -777,7 +762,7 @@ L.loPLPhaseY1=fread(fh, 1, 'double=>double') ;%          =  24; (* LONGREAL *)
 L.loPLPhaseY2=fread(fh, 1, 'double=>double') ;%          =  32; (* LONGREAL *)
 L.loUsedPhaseShift=fread(fh, 1, 'double=>double') ;%     =  40; (* LONGREAL *)
 L.loUsedAttenuation=fread(fh, 1, 'double=>double');%    =  48; (* LONGREAL *)
-skip=fread(fh, 1, 'double=>double');
+L.loFiller1=fread(fh, 1, 'double=>double');
 L.loExtCalValid=fread(fh, 1, 'uint8=>logical') ;%        =  64; (* BOOLEAN *)
 L.loPLPhaseValid=fread(fh, 1, 'uint8=>logical') ;%       =  65; (* BOOLEAN *)
 L.loLockInMode=fread(fh, 1, 'uint8=>uint8') ;%         =  66; (* BYTE *)
@@ -903,110 +888,104 @@ fseek(fh, offset+A.AmplifierStateSize, 'bof');
 end
 
 %--------------------------------------------------------------------------
-function [channelnumber,matData]=LocalImportGroup(fh, thisfile, tree, grp, grp_row, channelnumber)
+function matData2=LocalImportGroup(fh, dataTree, grp, grp_row)
 %--------------------------------------------------------------------------
-
-
 % Create a structure for the series headers
 
 
 % Pad the indices for last series of last group
-grp_row(end+1)=size(tree,1);
+grp_row(end+1)=size(dataTree,1);
 
 % Collect the series headers and row numbers for this group into a
 % structure array
-[ser_s, ser_row, nseries]=getSeriesHeaders(tree, grp_row, grp);
+[ser_s, ser_row, nseries]=getSeriesHeaders(dataTree, grp_row, grp);
 
 % Pad for last series
 ser_row(nseries+1)=grp_row(grp+1);
 
 dataoffsets=[];
 % Create the channels
+
+matData2 = cell(nseries,1);
 for ser=1:nseries
-   
-%     
-    [sw_s, sw_row, nsweeps]=getSweepHeaders(tree, ser_row, ser); 
-    
-    % Make sure the sweeps are in temporal sequence
-    if any(diff(cell2mat({sw_s.SwTime}))<=0)
-        % TODO: sort them if this can ever happen.
-        % For the moment just throw an error
-        error('Sweeps not in temporal sequence');
-    end
-    
-    
-    sw_row(nsweeps+1)=ser_row(ser+1); 
-    % Get the trace headers for this sweep
-    [tr_row]=getTraceHeaders(tree, sw_row);
-    
-    
-    for k=1:size(tr_row, 1)
-        
-        [tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(tree, tr_row, k);
-        
-        % TODO: Need a better way to do this
-        % Check whether interleaving is supported with this file version
-        % Note: HEKA added interleaving Jan 2011.
-        % TrInterleaveSkip was previously in a filler block, so should always
-        % be zero with older files.
-        if tr_s(1).TrInterleaveSize>0 && tr_s(1).TrInterleaveSkip>0
-            INTERLEAVE_SUPPORTED=true;
-        else
-            INTERLEAVE_SUPPORTED=false;
-        end
-        
-        data=zeros(max(cell2mat({tr_s.TrDataPoints})), size(tr_row,2));
-        
-        for tr=1:size(tr_row,2)
-            % Disc format
-            [fmt, nbytes]=LocalFormatToString(tr_s(tr).TrDataFormat);
-            % Always read into double
-            readfmt=[fmt '=>double'];
-            % Skip to start of the data
-            fseek(fh, tree{tr_row(k,tr),5}.TrData, 'bof');
-            % Store data offset for later error checks
-            dataoffsets(end+1)=tree{tr_row(k,tr),5}.TrData; %#ok<AGROW>
-            % Read the data
-            if ~INTERLEAVE_SUPPORTED || tree{tr_row(k,tr),5}.TrInterleaveSize==0 
-                [data(1:tree{tr_row(k,tr),5}.TrDataPoints, tr)]=...
-                    fread(fh, double(tree{tr_row(k,tr),5}.TrDataPoints), readfmt);
-                else
-                offset=1;
-                nelements= double(tree{tr_row(k,tr),5}.TrInterleaveSize/nbytes);
-                for nread=1:floor(numel(data)/double(tree{tr_row(k,tr),5}.TrInterleaveSize/nbytes))
-                    [data(offset:offset+nelements-1), N]=fread(fh, nelements, readfmt);
-                    if (N<nelements)
-                        disp('End of file reached unexpectedly');
-                    end
-                    offset=offset+nelements;
-                    fseek(fh, double(tree{tr_row(k,tr),5}.TrInterleaveSkip-tree{tr_row(k,tr),5}.TrInterleaveSize), 'cof');
-                end
-            end
-        end
-        
-        
-        % Now scale the data to real world units
-        % Note we also apply zero adjustment
-        for col=1:size(data,2)
-            data(:,col)=data(:,col)*tr_s(col).TrDataScaler+tr_s(col).TrZeroData;
-        end
-        
-
-        matData{channelnumber} = data;
-        
-         
-
-        
-        channelnumber=channelnumber+1;
-    end
-    
-    
+	
+	[sw_s, sw_row, nsweeps]=getSweepHeaders(dataTree, ser_row, ser);
+	
+	% Make sure the sweeps are in temporal sequence
+	if any(diff(cell2mat({sw_s.SwTime}))<=0)
+		% TODO: sort them if this can ever happen.
+		% For the moment just throw an error
+		error('Sweeps not in temporal sequence');
+	end
+	
+	
+	sw_row(nsweeps+1)=ser_row(ser+1);
+	% Get the trace headers for this sweep
+	[tr_row]=getTraceHeaders(dataTree, sw_row);
+	
+	
+	for k=1:size(tr_row, 1)
+		
+		[tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(dataTree, tr_row, k);
+		
+		% TODO: Need a better way to do this
+		% Check whether interleaving is supported with this file version
+		% Note: HEKA added interleaving Jan 2011.
+		% TrInterleaveSkip was previously in a filler block, so should always
+		% be zero with older files.
+		if tr_s(1).TrInterleaveSize>0 && tr_s(1).TrInterleaveSkip>0
+			INTERLEAVE_SUPPORTED=true;
+		else
+			INTERLEAVE_SUPPORTED=false;
+		end
+		
+		data=zeros(max(cell2mat({tr_s.TrDataPoints})), size(tr_row,2));
+		
+		for tr=1:size(tr_row,2)
+			% Disc format
+			[fmt, nbytes]=LocalFormatToString(tr_s(tr).TrDataFormat);
+			% Always read into double
+			readfmt=[fmt '=>double'];
+			% Skip to start of the data
+			fseek(fh, dataTree{tr_row(k,tr),5}.TrData, 'bof');
+			% Store data offset for later error checks
+			dataoffsets(end+1)=dataTree{tr_row(k,tr),5}.TrData; %#ok<AGROW>
+			% Read the data
+			if ~INTERLEAVE_SUPPORTED || dataTree{tr_row(k,tr),5}.TrInterleaveSize==0
+				[data(1:dataTree{tr_row(k,tr),5}.TrDataPoints, tr)]=...
+					fread(fh, double(dataTree{tr_row(k,tr),5}.TrDataPoints), readfmt);
+			else
+				offset=1;
+				nelements= double(dataTree{tr_row(k,tr),5}.TrInterleaveSize/nbytes);
+				for nread=1:floor(numel(data)/double(dataTree{tr_row(k,tr),5}.TrInterleaveSize/nbytes))
+					[data(offset:offset+nelements-1), N]=fread(fh, nelements, readfmt);
+					if (N<nelements)
+						disp('End of file reached unexpectedly');
+					end
+					offset=offset+nelements;
+					fseek(fh, double(dataTree{tr_row(k,tr),5}.TrInterleaveSkip-dataTree{tr_row(k,tr),5}.TrInterleaveSize), 'cof');
+				end
+			end
+		end
+		
+		
+		% Now scale the data to real world units
+		% Note we also apply zero adjustment
+		for col=1:size(data,2)
+			data(:,col)=data(:,col)*tr_s(col).TrDataScaler+tr_s(col).TrZeroData;
+		end
+		
+		matData2{ser,:}{k} = data;
+		
+	end
+	
+	
 end
 
 
 if numel(unique(dataoffsets))<numel(dataoffsets)
-    warning('ImportHEKA:warning', 'This should never happen - please report to sigtool@kcl.ac.uk if you see this warning.');
-    warning('ImportHEKA:multipleBlockRead', 'sigTOOL: Unexpected result: Some data blocks appear to have been read more then once');
+	warning('ImportHEKA:warning', 'This should never happen - please report to sigtool@kcl.ac.uk if you see this warning.');
+	warning('ImportHEKA:multipleBlockRead', 'sigTOOL: Unexpected result: Some data blocks appear to have been read more then once');
 end
 
 
@@ -1016,32 +995,32 @@ end
 function [fmt, nbytes]=LocalFormatToString(n)
 %--------------------------------------------------------------------------
 switch n
-    case 0
-        fmt='int16';
-        nbytes=2;
-    case 1
-        fmt='int32';
-        nbytes=4;
-    case 2
-        fmt='single';
-        nbytes=4;
-    case 3
-        fmt='double';
-        nbytes=8;
+	case 0
+		fmt='int16';
+		nbytes=2;
+	case 1
+		fmt='int32';
+		nbytes=4;
+	case 2
+		fmt='single';
+		nbytes=4;
+	case 3
+		fmt='double';
+		nbytes=8;
 end
 return
 end
 
 %--------------------------------------------------------------------------
-function [res intflag]=LocalGetRes(fmt)
+function [res, intflag]=LocalGetRes(fmt)
 %--------------------------------------------------------------------------
 switch fmt
-    case {'int16' 'int32'}
-        res=double(intmax(fmt))+double(abs(intmin(fmt)))+1;
-        intflag=true;
-    case {'single' 'double'}
-        res=1;
-        intflag=false;
+	case {'int16' 'int32'}
+		res=double(intmax(fmt))+double(abs(intmin(fmt)))+1;
+		intflag=true;
+	case {'single' 'double'}
+		res=1;
+		intflag=false;
 end
 return
 end
@@ -1051,11 +1030,11 @@ function [ser_s, ser_row, nseries]=getSeriesHeaders(tree, grp_row, grp)
 %--------------------------------------------------------------------------
 nseries=0;
 for k=grp_row(grp)+1:grp_row(grp+1)-1
-    if ~isempty(tree{k, 3})
-        ser_s(nseries+1)=tree{k, 3}; %#ok<AGROW>
-        ser_row(nseries+1)=k; %#ok<AGROW>
-        nseries=nseries+1;
-    end
+	if ~isempty(tree{k, 3})
+		ser_s(nseries+1)=tree{k, 3}; %#ok<AGROW>
+		ser_row(nseries+1)=k; %#ok<AGROW>
+		nseries=nseries+1;
+	end
 end
 return
 end
@@ -1065,11 +1044,11 @@ function [sw_s, sw_row, nsweeps]=getSweepHeaders(tree, ser_row, ser)
 %--------------------------------------------------------------------------
 nsweeps=0;
 for k=ser_row(ser)+1:ser_row(ser+1)
-    if ~isempty(tree{k, 4})
-        sw_s(nsweeps+1)=tree{k, 4}; %#ok<AGROW>
-        sw_row(nsweeps+1)=k; %#ok<AGROW>
-        nsweeps=nsweeps+1;
-    end
+	if ~isempty(tree{k, 4})
+		sw_s(nsweeps+1)=tree{k, 4}; %#ok<AGROW>
+		sw_row(nsweeps+1)=k; %#ok<AGROW>
+		nsweeps=nsweeps+1;
+	end
 end
 return
 end
@@ -1081,15 +1060,15 @@ ntrace=0;
 m=1;
 n=1;
 for k=sw_row(1)+1:sw_row(end)
-    if ~isempty(tree{k, 5})
-        %tr_s(m,n)=tree{k, 5}; %#ok<NASGU>
-        tr_row(m,n)=k;  %#ok<AGROW>
-        ntrace=ntrace+1;
-        m=m+1;
-    else
-        m=1;
-        n=n+1;
-    end 
+	if ~isempty(tree{k, 5})
+		%tr_s(m,n)=tree{k, 5}; %#ok<NASGU>
+		tr_row(m,n)=k;  %#ok<AGROW>
+		ntrace=ntrace+1;
+		m=m+1;
+	else
+		m=1;
+		n=n+1;
+	end
 end
 return
 end
@@ -1099,66 +1078,61 @@ end
 function [tr_s, isConstantScaling, isConstantFormat, isFramed]=LocalCheckEntries(tree, tr_row, k)
 %--------------------------------------------------------------------------
 % Check units are the same for all traces
-tr_s=cell2mat({tree{tr_row(k, :),5}});
+tr_s=[tree{tr_row(k, :),5}];
 
-% Check for conditions that are unexpected and will lead to error in the
-% sigTOOL data file
-% if numel(unique(cell2mat({tr_s.TrDataKind})))>1
-%     error('1001: Data are of different kinds');
-% end
 
 if numel(unique({tr_s.TrYUnit}))>1
-    error('1002: Waveform units are not constant');
+	error('1002: Waveform units are not constant');
 end
 
 if numel(unique({tr_s.TrXUnit}))>1
-    error('1003: Time units are not constant');
+	error('1003: Time units are not constant');
 end
 
 if numel(unique(cell2mat({tr_s.TrXInterval})))~=1
-    error('1004: Unequal sample intervals');
+	error('1004: Unequal sample intervals');
 end
 
 % Other unexpected conditions - give user freedom to create these but warn
 % about them
 if numel(unique({tr_s.TrLabel}))>1
-    warning('LocalCheckEntries:w2001', 'Different trace labels');
+	warning('LocalCheckEntries:w2001', 'Different trace labels');
 end
 
 if numel(unique(cell2mat({tr_s.TrAdcChannel})))>1
-    warning('LocalCheckEntries:w2002', 'Data collected from different ADC channels');
+	warning('LocalCheckEntries:w2002', 'Data collected from different ADC channels');
 end
 
 if numel(unique(cell2mat({tr_s.TrRecordingMode})))>1
-    warning('LocalCheckEntries:w2003', 'Traces collected using different recording modes');
+	warning('LocalCheckEntries:w2003', 'Traces collected using different recording modes');
 end
 
 if numel(unique(cell2mat({tr_s.TrCellPotential})))>1
-    warning('LocalCheckEntries:w2004', 'Traces collected using different Em');
+	warning('LocalCheckEntries:w2004', 'Traces collected using different Em');
 end
 
 % Check scaling factor is constant
 ScaleFactor=unique(cell2mat({tr_s.TrDataScaler}));
 if numel(ScaleFactor)==1
-    isConstantScaling=true;
+	isConstantScaling=true;
 else
-    isConstantScaling=false;
+	isConstantScaling=false;
 end
 
 
 %... and data format
 if numel(unique(cell2mat({tr_s.TrDataFormat})))==1
-    isConstantFormat=true;
+	isConstantFormat=true;
 else
-    isConstantFormat=false;
+	isConstantFormat=false;
 end
 
 % Do we have constant epoch lengths and offsets?
 if numel(unique(cell2mat({tr_s.TrDataPoints})))==1 &&...
-        numel(unique(cell2mat({tr_s.TrTimeOffset })))==1
-    isFramed=true;
+		numel(unique(cell2mat({tr_s.TrTimeOffset })))==1
+	isFramed=true;
 else
-    isFramed=false;
+	isFramed=false;
 end
 return
 end
@@ -1168,31 +1142,11 @@ function str=time2date(t)
 %--------------------------------------------------------------------------
 t=t-1580970496;
 if t<0
-    t=t+4294967296;
+	t=t+4294967296;
 end
 t=t+9561652096;
 str=datestr(t/(24*60*60)+datenum(1601,1,1));
 return
 end
 %--------------------------------------------------------------------------
-    
-function str=patchType(n)
-switch n
-    case 0
-        str='Inside-out';
-    case 1
-        str='Cell-attached';
-    case 2
-        str='Outside-out';
-    case 3
-        str='Whole=cell';
-    case 4
-        str='Current-lamp';
-    case 5
-        str='Voltage-clamp';
-    otherwise
-        str=[];
-end
-return
-end
-                                    
+
