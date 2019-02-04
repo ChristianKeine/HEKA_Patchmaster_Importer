@@ -1,4 +1,4 @@
-function HI_extractHEKAStimTree(obj,stimTree)
+function HI_extractHEKAStimTree(obj)
 %
 % Function to extract parameters from the HEKA stimulus tree and sort them
 % according to the recordings.
@@ -20,6 +20,9 @@ function HI_extractHEKAStimTree(obj,stimTree)
 %2 Series
 %3: channels
 %4: segments
+
+stimTree = obj.trees.stimTree;
+
 allRecs = find(~cellfun(@isempty,stimTree(:,2)));
 
 % GET CHANNELS AND NUMBER OF SEGMENTS PER CHANNEl

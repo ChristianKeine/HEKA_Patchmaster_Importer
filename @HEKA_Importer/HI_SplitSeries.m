@@ -1,4 +1,4 @@
-function obj = HI_SplitSeries(obj,data, dataTree,stimTree, varargin)
+function obj = HI_SplitSeries(obj,data,varargin)
 
 % HI_SplitSeries.m
 % This function takes the collapsed data set (dCollapse) and splits it by
@@ -40,12 +40,13 @@ function obj = HI_SplitSeries(obj,data, dataTree,stimTree, varargin)
 
 P = inputParser;
 P.addRequired('data');
-P.addRequired('dataTree');
-P.addRequired('stimTree');
+% P.addRequired('dataTree');
+% P.addRequired('stimTree');
 
-P.parse(data,dataTree,stimTree,varargin{:});
+P.parse(data,varargin{:});
 
-stimTree = P.Results.stimTree;
+stimTree = obj.trees.stimTree;
+dataTree = obj.trees.dataTree;
 
 % Find which rows in tree contain group, series, and sweep metadata
 grLoc = find(~cellfun('isempty',dataTree(:,2)));

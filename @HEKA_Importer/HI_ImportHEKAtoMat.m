@@ -1,4 +1,4 @@
-function [dataTree, matData2, stimTree, solTree]=HI_ImportHEKAtoMat(obj)
+function matData2=HI_ImportHEKAtoMat(obj)
 % ImportHEKA imports HEKA PatchMaster and ChartMaster .DAT files
 %
 % Example:
@@ -57,22 +57,26 @@ if ~isempty(littleendianflag) && littleendianflag==false
 	bundle=getBundleHeader(fh);
 end
 
+%% GET DATA, STIM AND SOLUTION TREE
 
-%% GET DATA TREE FROM PULSE FILE
-if isBundled
+fileExt = {'.pul','.pgf','.sol'};
+treeName = {'dataTree','stimTree','solTree'};
+
+for iidx = fileExt
+	if isBundled
 	%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
-	ext={bundle.oBundleItems.oExtension};
+ 	ext={bundle.oBundleItems.oExtension};
 	% Find the pulse data
-	idx=strcmp('.pul', ext);%15.08.2012 - change from strmatch
+	idx=strcmp(iidx, ext);%15.08.2012 - change from strmatch
 	start=bundle.oBundleItems(idx).oStart;
 else
 	% Or open pulse file if not bundled
 	fclose(fh);
 	start=0;
-	fh=fopen(fullfile(pathname, [filename, '.pul']), 'r', endian);
-end
+	fh=fopen(fullfile(pathname, [filename, iidx{1}]), 'r', endian);
+	end
 
-% Base of tree
+% READ OUT TREE	
 fseek(fh, start, 'bof');
 Magic = fread(fh, 4, 'uint8=>char');
 Levels=fread(fh, 1, 'int32=>int32');
@@ -80,57 +84,87 @@ Sizes=fread(fh, double(Levels), 'int32=>int32');
 
 % Get the data tree form the pulse file
 Position=ftell(fh);
-dataTree=getDataTree(fh, Sizes, Position);
 
-%% GET STIMULUS TREE FROM PGF FILE
-if isBundled
-	ext={bundle.oBundleItems(1:12).oExtension};
-	% Find the pgf data
-	idx=strcmp('.pgf', ext);%15.08.2012 - change from strmatch
-	start=bundle.oBundleItems(idx).oStart;
-else
-	% Or open pgf file if not bundled
-	fclose(fh);
-	start=0;
-	fh=fopen(fullfile(pathname, [filename, '.pgf']), 'r', endian);
+obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
+	
 end
 
-% Base of tree
-fseek(fh, start, 'bof');
-fread(fh, 4, 'uint8=>char');
-Levels=fread(fh, 1, 'int32=>int32');
-Sizes=fread(fh, double(Levels), 'int32=>int32');
 
-% Get the tree form the pulse file
-Position=ftell(fh);
-stimTree=getStimTree(fh, Sizes, Position);
+
+
+%% GET DATA TREE FROM PULSE FILE
+% if isBundled
+% 	%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
+% 	ext={bundle.oBundleItems.oExtension};
+% 	% Find the pulse data
+% 	idx=strcmp('.pul', ext);%15.08.2012 - change from strmatch
+% 	start=bundle.oBundleItems(idx).oStart;
+% else
+% 	% Or open pulse file if not bundled
+% 	fclose(fh);
+% 	start=0;
+% 	fh=fopen(fullfile(pathname, [filename, '.pul']), 'r', endian);
+% end
+% 
+% % Base of tree
+% fseek(fh, start, 'bof');
+% Magic = fread(fh, 4, 'uint8=>char');
+% Levels=fread(fh, 1, 'int32=>int32');
+% Sizes=fread(fh, double(Levels), 'int32=>int32');
+% 
+% % Get the data tree form the pulse file
+% Position=ftell(fh);
+% dataTree=getDataTree(fh, Sizes, Position);
+
+%% GET STIMULUS TREE FROM PGF FILE
+% if isBundled
+% 	ext={bundle.oBundleItems.oExtension};
+% 	% Find the pgf data
+% 	idx=strcmp('.pgf', ext);%15.08.2012 - change from strmatch
+% 	start=bundle.oBundleItems(idx).oStart;
+% else
+% 	% Or open pgf file if not bundled
+% 	fclose(fh);
+% 	start=0;
+% 	fh=fopen(fullfile(pathname, [filename, '.pgf']), 'r', endian);
+% end
+% 
+% % Base of tree
+% fseek(fh, start, 'bof');
+% fread(fh, 4, 'uint8=>char');
+% Levels=fread(fh, 1, 'int32=>int32');
+% Sizes=fread(fh, double(Levels), 'int32=>int32');
+% 
+% % Get the tree form the pulse file
+% Position=ftell(fh);
+% stimTree=getStimTree(fh, Sizes, Position);
 
 
 %% GET SOLUTION TREE FORM SOL FILE
-if isBundled
-	ext={bundle.oBundleItems.oExtension};
-	% Find the solution data
-	idx=strcmp('.sol', ext);%15.08.2012 - change from strmatch
-	start=bundle.oBundleItems(idx).oStart;
-else
-	% Or open solution file if not bundled
-	fclose(fh);
-	start=0;
-	fh=fopen(fullfile(pathname, [filename, '.sol']), 'r', endian);
-end
+% if isBundled
+% 	ext={bundle.oBundleItems.oExtension};
+% 	% Find the solution data
+% 	idx=strcmp('.sol', ext);%15.08.2012 - change from strmatch
+% 	start=bundle.oBundleItems(idx).oStart;
+% else
+% 	% Or open solution file if not bundled
+% 	fclose(fh);
+% 	start=0;
+% 	fh=fopen(fullfile(pathname, [filename, '.sol']), 'r', endian);
+% end
+% 
+% % Base of tree
+% fseek(fh, start, 'bof');
+% Magic=fread(fh, 4, 'uint8=>char');
+% Levels=fread(fh, 1, 'int32=>int32');
+% Sizes=fread(fh, double(Levels), 'int32=>int32');
+% 
+% % Get the tree form the pulse file
+% Position=ftell(fh);
+% solTree=getSolutionTree(fh, Sizes, Position);
 
-% Base of tree
-fseek(fh, start, 'bof');
-Magic=fread(fh, 4, 'uint8=>char');
-Levels=fread(fh, 1, 'int32=>int32');
-Sizes=fread(fh, double(Levels), 'int32=>int32');
 
-% Get the tree form the pulse file
-Position=ftell(fh);
-solTree=getSolutionTree(fh, Sizes, Position);
-
-
-
+%% GET DATA
 if isBundled
 	% Set offset for data
 	idx=strcmp('.dat', ext);%15.08.2012 - change from strmatch
@@ -148,8 +182,8 @@ fseek(fh, start, 'bof');
 
 % Get the group headers into a structure array
 ngroup=1;
-for k=1:size(dataTree,1)
-	if ~isempty(dataTree{k, 2})
+for k=1:size(obj.trees.dataTree,1)
+	if ~isempty(obj.trees.dataTree{k, 2})
 		grp_row(ngroup)=k; %#ok<AGROW>
 		ngroup=ngroup+1;
 	end
@@ -160,7 +194,7 @@ end
 % channelnumber=1;
 matData2 = cell(size(grp_row));
 for grp=1:numel(grp_row)
-	matData2{grp}=LocalImportGroup(fh, thisfile, dataTree, grp, grp_row);
+	matData2{grp}=LocalImportGroup(fh, thisfile, obj.trees.dataTree, grp, grp_row);
 end
 
 
@@ -210,26 +244,59 @@ littleendianflag=h.oIsLittleEndian;
 
 end
 
+
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getDataTree(fh, Sizes, Position)
+function [Tree, Counter]=getTree(fh, Sizes, Position, ext)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
-[Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0);
+[Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0, ext);
 end
 
-%--------------------------------------------------------------------------
-function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
+
+function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Position, Counter, ext)
 %--------------------------------------------------------------------------
 % Recursive routine called from LoadTree
-[Tree, Position, Counter, nchild]=getOneLevel(fh, Tree, Sizes, Level, Position, Counter);
+
+switch ext
+	case '.pul'
+		[Tree, Position, Counter, nchild]=getOneDataLevel(fh, Tree, Sizes, Level, Position, Counter);
+	case '.pgf'
+		[Tree, Position, Counter, nchild]=getOneStimLevel(fh, Tree, Sizes, Level, Position, Counter);
+	case '.sol'
+		[Tree, Position, Counter, nchild]=getOneSolutionLevel(fh, Tree, Sizes, Level, Position, Counter);
+end
+
 for k=1:double(nchild)
-	[Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
+	[Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter, ext);
 end
 
 end
+
+
+
+
+
 
 %--------------------------------------------------------------------------
-function [Tree, Position, Counter, nchild]=getOneLevel(fh, Tree, Sizes, Level, Position, Counter)
+% function [Tree, Counter]=getDataTree(fh, Sizes, Position)
+% %--------------------------------------------------------------------------
+% % Main entry point for loading tree
+% [Tree, Counter]=getTreeReentrant(fh, {}, Sizes, 0, Position, 0);
+% end
+
+%--------------------------------------------------------------------------
+% function [Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level, Position, Counter)
+% %--------------------------------------------------------------------------
+% % Recursive routine called from LoadTree
+% [Tree, Position, Counter, nchild]=getOneLevel(fh, Tree, Sizes, Level, Position, Counter);
+% for k=1:double(nchild)
+% 	[Tree, Position, Counter]=getTreeReentrant(fh, Tree, Sizes, Level+1, Position, Counter);
+% end
+% 
+% end
+
+%--------------------------------------------------------------------------
+function [Tree, Position, Counter, nchild]=getOneDataLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
 [s Counter]=getOneRecord(fh, Level, Counter);

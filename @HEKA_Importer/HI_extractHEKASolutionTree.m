@@ -1,4 +1,4 @@
-function HI_extractHEKASolutionTree(obj,solTree)
+function HI_extractHEKASolutionTree(obj)
 
 % Function to extract parameters from the HEKA sol tree create solution
 % table containing the chemicals and concentrations for all solutions used
@@ -17,6 +17,7 @@ function HI_extractHEKASolutionTree(obj,solTree)
 %2: Solution
 %3: Chemicals
 
+solTree = obj.trees.solTree;
 
 if size(solTree,2) > 1 % OTHERWISE NOT SOLUTIONS DEFINED
 
