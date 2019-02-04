@@ -28,6 +28,13 @@ function obj=HI_ImportHEKAtoMat(obj)
 % 01.01.2019 Modified by Christian Keine to read solution parameters from
 % .sol section of .dat file.
 % 04.02.2019: combine readout of dataTree, stimTree and solTree.
+%
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
+% 			HEKA_Importer.HI_extractHEKADataTree
+
 
 
 [pathname, filename, ext]=fileparts(obj.opt.filepath);
