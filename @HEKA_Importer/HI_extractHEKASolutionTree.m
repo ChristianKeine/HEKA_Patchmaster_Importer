@@ -9,7 +9,6 @@ function HI_extractHEKASolutionTree(obj)
 % 
 % See also	HEKA_Importer
 % 			HEKA_Importer.HI_loadHEKAFile 
-% 			HEKA_Importer.HI_SplitSeries
 % 			HEKA_Importer.HI_ImportHEKAtoMat 			
 % 			HEKA_Importer.HI_extractHEKADataTree
 % 			HEKA_Importer.HI_extractHEKAStimTree

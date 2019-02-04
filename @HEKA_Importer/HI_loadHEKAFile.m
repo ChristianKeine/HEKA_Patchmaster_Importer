@@ -5,7 +5,6 @@ function HI_loadHEKAFile(obj)
 % for more information.
 % 
 % See also	HEKA_Importer 
-% 			HEKA_Importer.HI_SplitSeries
 % 			HEKA_Importer.HI_ImportHEKAtoMat 			
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
@@ -16,12 +15,10 @@ if ~exist(obj.opt.filepath,'file')
     warning('File not found'); return
 end
   
-    %% CALL IMPORT FUNCTION
+    %% CALL IMPORT FUNCTION AND EXRACT DATA
     obj.HI_ImportHEKAtoMat;
-
-    
-    % EXTRACT DATA AND SORT INFORMATION FROM TREE STRUCTURES
-%     obj.HI_SplitSeries(data);
+  
+    % EXTRACT AND SORT INFORMATION FROM TREE STRUCTURES
     obj.HI_extractHEKADataTree;
     obj.HI_extractHEKAStimTree;
     obj.HI_extractHEKASolutionTree;
