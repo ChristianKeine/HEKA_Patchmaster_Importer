@@ -122,9 +122,7 @@ classdef HEKA_Importer < handle
 
     methods (Access = private)
         
-
         HI_loadHEKAFile(obj,varargin);
-
         HI_ImportHEKAtoMat(obj)
         HI_extractHEKADataTree(obj);
         HI_extractHEKAStimTree(obj);
