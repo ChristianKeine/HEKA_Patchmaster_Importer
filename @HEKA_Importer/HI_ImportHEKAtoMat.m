@@ -29,10 +29,8 @@ function obj=HI_ImportHEKAtoMat(obj)
 % .sol section of .dat file.
 % 04.02.2019: combine readout of dataTree, stimTree and solTree.
 
-% thisfile = obj.opt.filepath;
 
 [pathname, filename, ext]=fileparts(obj.opt.filepath);
-% datafile=fullfile(pathname, [filename ext]);
 
 % Open file and get bundle header. Assume little-endian to begin with
 endian='ieee-le';
