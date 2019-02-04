@@ -118,7 +118,7 @@ else
     start=0;
     fh=fopen(fullfile(pathname, [filename, '.sol']), 'r', endian);
 end
-
+ 
 % Base of tree
 fseek(fh, start, 'bof');
 Magic=fread(fh, 4, 'uint8=>char');
