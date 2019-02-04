@@ -104,7 +104,6 @@ end
 % Now set pointer to the start of the data the data
 fseek(fh, start, 'bof');
 
-
 % Get the group headers into a structure array
 ngroup=1;
 for k=1:size(obj.trees.dataTree,1)
@@ -114,9 +113,7 @@ for k=1:size(obj.trees.dataTree,1)
 	end
 end
 
-
 % For each group
-% channelnumber=1;
 matData2 = cell(size(grp_row));
 for grp=1:numel(grp_row)
 	matData2{grp}=LocalImportGroup(fh, thisfile, obj.trees.dataTree, grp, grp_row);
@@ -126,7 +123,7 @@ end
 end
 
 %--------------------------------------------------------------------------
-function [h littleendianflag isBundled]=getBundleHeader(fh)
+function [h, littleendianflag, isBundled]=getBundleHeader(fh)
 %--------------------------------------------------------------------------
 % Get the bundle header from a HEKA .dat file
 fseek(fh, 0, 'bof');
@@ -224,7 +221,7 @@ end
 function [Tree, Position, Counter, nchild]=getOneDataLevel(fh, Tree, Sizes, Level, Position, Counter)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s Counter]=getOneRecord(fh, Level, Counter);
+[s, Counter]=getOneRecord(fh, Level, Counter);
 Tree{Counter, Level+1}=s;
 Position=Position+Sizes(Level+1);
 fseek(fh, Position, 'bof');
@@ -233,7 +230,7 @@ Position=ftell(fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec Counter]=getOneRecord(fh, Level, Counter)
+function [rec, Counter]=getOneRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
 Counter=Counter+1;
