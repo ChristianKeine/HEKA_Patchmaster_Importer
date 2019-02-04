@@ -17,11 +17,11 @@ if ~exist(obj.opt.filepath,'file')
 end
   
     %% CALL IMPORT FUNCTION
-    data = obj.HI_ImportHEKAtoMat;
+    obj.HI_ImportHEKAtoMat;
 
     
     % EXTRACT DATA AND SORT INFORMATION FROM TREE STRUCTURES
-    obj.HI_SplitSeries(data);
+%     obj.HI_SplitSeries(data);
     obj.HI_extractHEKADataTree;
     obj.HI_extractHEKAStimTree;
     obj.HI_extractHEKASolutionTree;

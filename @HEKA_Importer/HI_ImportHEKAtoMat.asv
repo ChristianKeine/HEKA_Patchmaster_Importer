@@ -1,4 +1,4 @@
-function obj=HI_ImportHEKAtoMat(obj)
+function matData2=HI_ImportHEKAtoMat(obj)
 % ImportHEKA imports HEKA PatchMaster and ChartMaster .DAT files
 %
 % Example:
@@ -116,14 +116,13 @@ end
 addEPS = @(x) x+randn(size(x))*eps;
 % For each group
 matData2 = cell(size(grp_row));
-dataRaw = cell(size(grp_row));
 for iGr = 1:numel(grp_row)
 	matData2{iGr}=LocalImportGroup(fh, thisfile, obj.trees.dataTree, iGr, grp_row);
 
-% ADD MINIMUM RANDOM NUMBER TO AVOID DISCRETIZATION; ADD TO ALL CHANNELS
-
-	for iSer = 1:numel(matData2{iGr})
-		dataRaw{iGr,:}{iSer,:} = cellfun(addEPS,matData2{iGr}{iSer},'UniformOutput',false);
+% 	currGr = matlab.lang.makeValidName(obj.trees.dataTree{grp_row(iGr),2}.GrLabel);
+% 	dataRaw{iGr,:} = ephysData.(currGr).data;
+	for iSer=1:numel(matData2{iGr})
+		dataRaw{iGr,:}(iSer) = cellfun(addEPS,matData2{iGr}{iSer},'UniformOutput',false);
 	end
 	
 	
