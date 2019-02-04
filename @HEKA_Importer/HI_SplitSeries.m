@@ -40,8 +40,6 @@ function obj = HI_SplitSeries(obj,data,varargin)
 
 P = inputParser;
 P.addRequired('data');
-% P.addRequired('dataTree');
-% P.addRequired('stimTree');
 
 P.parse(data,varargin{:});
 
