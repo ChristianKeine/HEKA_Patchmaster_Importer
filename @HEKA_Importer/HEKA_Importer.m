@@ -72,7 +72,6 @@ classdef HEKA_Importer < handle
 % 								of the RecTable. 
 % 
 % See also	HEKA_Importer.HI_loadHEKAFile 
-% 			HEKA_Importer.HI_SplitSeries
 % 			HEKA_Importer.HI_ImportHEKAtoMat 
 % 			HEKA_Importer.HI_extractHEKAStimTree
 % 			HEKA_Importer.HI_extractHEKASolutionTree
