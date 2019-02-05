@@ -75,14 +75,13 @@ nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
-% Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
-% Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
-Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
-% RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
 Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 
-% TODO: Readout Rs values for each sweep separately in case those values
-% change during the recordings
+	% THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
+% RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
+% Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
+% Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
+% Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
 
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
@@ -99,6 +98,7 @@ RecordingMode = cell(nRecs,1);
 Rs = cell(nRecs,1);
 Rs_uncomp = cell(nRecs,1);
 RsFractionComp = cell(nRecs,1);
+Cm = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp'};
 
@@ -107,9 +107,7 @@ RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Wh
 
 for iR=1:nRecs
 	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
-	
-	
-	
+
 	% NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
 	% RECORDING
 	TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
@@ -126,11 +124,12 @@ for iR=1:nRecs
 	Rs{iR} = NaN(1,Recs(iR).SeNumbersw);
 	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
 	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
-	for iS=1:Recs(iR).SeNumbersw
+	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
 	
+	for iS=1:Recs(iR).SeNumbersw
 		Rs_uncomp{iR}(iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
 		Rs{iR}(iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
-		
+		Cm{iR}(iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
 	end
 		RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
 end
