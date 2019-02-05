@@ -12,10 +12,10 @@ function HI_extractHEKADataTree(obj)
 % 			HEKA_Importer.HI_extractHEKAStimTree
 
 %1: Root
-%2 Group/Experiment
-%3: series/Recording number
+%2: Group/Experiment
+%3: Series/Recording number
 %4: Sweep
-%5: Trace/channel
+%5: Trace/Channel
 
 dataTree = obj.trees.dataTree;
 
@@ -101,9 +101,6 @@ RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp'};
-
-
-
 
 for iR=1:nRecs
 	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
