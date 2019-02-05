@@ -44,7 +44,7 @@ end
 function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum)
 
 
-% RESORT STRUCTUREES TO ALSO CONTAIN SWEEP AND TRACE/CHANNEL INFORMATION
+% RESORT STRUCTURES TO ALSO CONTAIN SWEEP AND TRACE/CHANNEL INFORMATION
 recIDs = find(~cellfun(@isempty,dataTree(:,3)));
 recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
 
@@ -53,11 +53,8 @@ sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;size(dataTree,1)];
 for iR = 1:numel(recIDs)
 	% GET RECORDING INFORMATION
 	Recs(iR) = dataTree{recIDs(iR),3};
-	
 	%GET ASSOCIATED SWEEPS & TRACES
-	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));
-	
-	
+	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));	
 end
 
 
@@ -71,7 +68,6 @@ RecNum = reshape(1:nRecs,nRecs,1);
 Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
 Comment = reshape({Recs(:).SeComment},numel(Recs),1);
 nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
-
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
