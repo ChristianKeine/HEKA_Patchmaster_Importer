@@ -81,9 +81,11 @@ Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
 RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
 Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 
+% TODO: Readout Rs values for each sweep separately in case those values
+% change during the recordings
+
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
-
 Temperature = NaN(nRecs,1);
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
