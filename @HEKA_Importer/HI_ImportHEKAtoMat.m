@@ -61,11 +61,11 @@ for iidx = fileExt
 	if isBundled
 		%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
 		ext={bundle.oBundleItems.oExtension};
-		% Find the pulse data
+		% Find the section of the dat file
 		idx=strcmp(iidx, ext);%15.08.2012 - change from strmatch
-		if any(idx)
-		start=bundle.oBundleItems(idx).oStart;
-		else 
+		if any(idx) % check if section exists, e.g. will be empty when solution base was not active during recordings
+			start=bundle.oBundleItems(idx).oStart;
+		else
 			start = [];
 		end
 	else
@@ -77,17 +77,16 @@ for iidx = fileExt
 	
 	% READ OUT TREE
 	if ~isempty(start)
-	fseek(fh, start, 'bof');
-	Magic = fread(fh, 4, 'uint8=>char');
-	Levels=fread(fh, 1, 'int32=>int32');
-	Sizes=fread(fh, double(Levels), 'int32=>int32');
-	
-	% Get the data tree form the pulse file
-	Position=ftell(fh);
-	
-	obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
+		fseek(fh, start, 'bof');
+		Magic = fread(fh, 4, 'uint8=>char');
+		Levels=fread(fh, 1, 'int32=>int32');
+		Sizes=fread(fh, double(Levels), 'int32=>int32');
+		% Get the data tree form the pulse file
+		Position=ftell(fh);
+		
+		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
 	else
-	obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
+		obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
 	end
 end
 
