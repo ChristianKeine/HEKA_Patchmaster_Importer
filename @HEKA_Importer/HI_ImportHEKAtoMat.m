@@ -58,6 +58,7 @@ fileExt = {'.pul','.pgf','.sol'};
 treeName = {'dataTree','stimTree','solTree'};
 
 for iidx = fileExt
+	fileExist = true;
 	if isBundled
 		%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
 		ext={bundle.oBundleItems.oExtension};
@@ -66,17 +67,20 @@ for iidx = fileExt
 		if any(idx) % check if section exists, e.g. will be empty when solution base was not active during recordings
 			start=bundle.oBundleItems(idx).oStart;
 		else
-			start = [];
+			fileExist = false;
 		end
 	else
 		% Or open pulse file if not bundled
 		fclose(fh);
 		start=0;
 		fh=fopen(fullfile(pathname, [filename, iidx{1}]), 'r', endian);
+		if fh<0
+			fileExist = false;
+		end
 	end
 	
 	% READ OUT TREE
-	if ~isempty(start)
+	if fileExist
 		fseek(fh, start, 'bof');
 		Magic = fread(fh, 4, 'uint8=>char');
 		Levels=fread(fh, 1, 'int32=>int32');
