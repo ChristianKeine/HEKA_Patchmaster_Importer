@@ -63,7 +63,11 @@ for iidx = fileExt
 		ext={bundle.oBundleItems.oExtension};
 		% Find the pulse data
 		idx=strcmp(iidx, ext);%15.08.2012 - change from strmatch
+		if any(idx)
 		start=bundle.oBundleItems(idx).oStart;
+		else 
+			start = [];
+		end
 	else
 		% Or open pulse file if not bundled
 		fclose(fh);
@@ -72,6 +76,7 @@ for iidx = fileExt
 	end
 	
 	% READ OUT TREE
+	if ~isempty(start)
 	fseek(fh, start, 'bof');
 	Magic = fread(fh, 4, 'uint8=>char');
 	Levels=fread(fh, 1, 'int32=>int32');
@@ -81,7 +86,9 @@ for iidx = fileExt
 	Position=ftell(fh);
 	
 	obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
-	
+	else
+	obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
+	end
 end
 
 %% GET DATA
