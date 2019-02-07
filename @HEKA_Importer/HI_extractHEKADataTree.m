@@ -12,10 +12,10 @@ function HI_extractHEKADataTree(obj)
 % 			HEKA_Importer.HI_extractHEKAStimTree
 
 %1: Root
-%2 Group/Experiment
-%3: series/Recording number
+%2: Group/Experiment
+%3: Series/Recording number
 %4: Sweep
-%5: Trace/channel
+%5: Trace/Channel
 
 dataTree = obj.trees.dataTree;
 
@@ -44,7 +44,7 @@ end
 function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum)
 
 
-% RESORT STRUCTUREES TO ALSO CONTAIN SWEEP AND TRACE/CHANNEL INFORMATION
+% RESORT STRUCTURES TO ALSO CONTAIN SWEEP AND TRACE/CHANNEL INFORMATION
 recIDs = find(~cellfun(@isempty,dataTree(:,3)));
 recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
 
@@ -53,11 +53,8 @@ sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;size(dataTree,1)];
 for iR = 1:numel(recIDs)
 	% GET RECORDING INFORMATION
 	Recs(iR) = dataTree{recIDs(iR),3};
-	
 	%GET ASSOCIATED SWEEPS & TRACES
-	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));
-	
-	
+	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));	
 end
 
 
@@ -65,25 +62,25 @@ end
 nRecs = numel(Recs);
 ExperimentName = repmat({dataTree{thisExpID,2}.GrLabel},nRecs,1);
 ExperimentNumber = repmat(ExpNum,nRecs,1);
-recNum = reshape(1:nRecs,nRecs,1);
+RecNum = reshape(1:nRecs,nRecs,1);
 
 %EXTRACT INFORMATION FROM LEVEL 3
 Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
-comment = reshape({Recs(:).SeComment},numel(Recs),1);
+Comment = reshape({Recs(:).SeComment},numel(Recs),1);
 nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
-
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
-Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
-Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
-Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
-RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
 Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
+
+	% THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
+% RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
+% Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
+% Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
+% Cm = reshape([AmpState(:).E9CSlow],numel(AmpState),1);
 
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
-
 Temperature = NaN(nRecs,1);
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
@@ -94,11 +91,16 @@ ExternalSolutionID = cell(nRecs,1);
 InternalSolutionID = cell(nRecs,1);
 RecordingMode = cell(nRecs,1);
 
+Rs = cell(nRecs,1);
+Rs_uncomp = cell(nRecs,1);
+RsFractionComp = cell(nRecs,1);
+Cm = cell(nRecs,1);
+
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp'};
 
 for iR=1:nRecs
 	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
-	
+
 	% NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
 	% RECORDING
 	TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
@@ -112,13 +114,24 @@ for iR=1:nRecs
 	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrExternalSolution];
 	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrInternalSolution];
 	
+	Rs{iR} = NaN(1,Recs(iR).SeNumbersw);
+	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
+	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
+	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
+	
+	for iS=1:Recs(iR).SeNumbersw
+		Rs_uncomp{iR}(iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
+		Rs{iR}(iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
+		Cm{iR}(iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
+	end
+		RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
 end
 
 
 % COMPILE DATA IN TABLE
 RecTab = table(ExperimentNumber,...
 	ExperimentName,...
-	recNum,...
+	RecNum,...
 	Rs,...
 	Cm,...
 	nSweeps,...
@@ -129,7 +142,7 @@ RecTab = table(ExperimentNumber,...
 	TimeUnit,...
 	ChUnit,...
 	ChName,...
-	comment,...
+	Comment,...
 	RecordingMode,...
 	Temperature,...
 	ExternalSolutionID,...
@@ -148,14 +161,12 @@ RecTab = table(ExperimentNumber,...
 	'TimeUnit',...
 	'ChUnit',...
 	'ChName',...
-	'comment',...
+	'Comment',...
 	'RecMode',...
 	'Temperature',...
 	'ExternalSolution',...
 	'InternalSolution',...
 	'SR'});
-
-
 end
 
 

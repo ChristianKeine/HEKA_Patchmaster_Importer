@@ -10,7 +10,6 @@ function HI_loadHEKAFile(obj)
 % 			HEKA_Importer.HI_extractHEKAStimTree
 % 			HEKA_Importer.HI_extractHEKADataTree
 
-
 % CHECK IF FILE EXISTS
 if ~exist(obj.opt.filepath,'file')
 	warning('File not found'); return

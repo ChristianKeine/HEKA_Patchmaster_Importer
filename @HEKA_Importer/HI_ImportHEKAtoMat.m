@@ -28,6 +28,13 @@ function obj=HI_ImportHEKAtoMat(obj)
 % 01.01.2019 Modified by Christian Keine to read solution parameters from
 % .sol section of .dat file.
 % 04.02.2019: combine readout of dataTree, stimTree and solTree.
+%
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
+% 			HEKA_Importer.HI_extractHEKADataTree
+
 
 
 [pathname, filename, ext]=fileparts(obj.opt.filepath);
@@ -51,30 +58,40 @@ fileExt = {'.pul','.pgf','.sol'};
 treeName = {'dataTree','stimTree','solTree'};
 
 for iidx = fileExt
+	fileExist = true;
 	if isBundled
 		%     ext = {'.dat','.pul','.pgf','.amp','.sol',[],[],'.mrk','.mth','.onl'};
 		ext={bundle.oBundleItems.oExtension};
-		% Find the pulse data
+		% Find the section of the dat file
 		idx=strcmp(iidx, ext);%15.08.2012 - change from strmatch
-		start=bundle.oBundleItems(idx).oStart;
+		if any(idx) % check if section exists, e.g. will be empty when solution base was not active during recordings
+			start=bundle.oBundleItems(idx).oStart;
+		else
+			fileExist = false;
+		end
 	else
 		% Or open pulse file if not bundled
 		fclose(fh);
 		start=0;
 		fh=fopen(fullfile(pathname, [filename, iidx{1}]), 'r', endian);
+		if fh<0
+			fileExist = false;
+		end
 	end
 	
 	% READ OUT TREE
-	fseek(fh, start, 'bof');
-	Magic = fread(fh, 4, 'uint8=>char');
-	Levels=fread(fh, 1, 'int32=>int32');
-	Sizes=fread(fh, double(Levels), 'int32=>int32');
-	
-	% Get the data tree form the pulse file
-	Position=ftell(fh);
-	
-	obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
-	
+	if fileExist
+		fseek(fh, start, 'bof');
+		Magic = fread(fh, 4, 'uint8=>char');
+		Levels=fread(fh, 1, 'int32=>int32');
+		Sizes=fread(fh, double(Levels), 'int32=>int32');
+		% Get the data tree form the pulse file
+		Position=ftell(fh);
+		
+		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
+	else
+		obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
+	end
 end
 
 %% GET DATA
