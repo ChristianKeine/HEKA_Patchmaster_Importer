@@ -103,7 +103,8 @@ classdef HEKA_Importer < handle
 
             obj.HI_loadHEKAFile;
 
-        end
+		end
+
     end
     
   methods (Static, Hidden=false)
@@ -115,7 +116,12 @@ classdef HEKA_Importer < handle
               
              obj = HEKA_Importer(fullfile(path,file));
              
-            end
+			end
+			function obj = TEST(varargin) %TEST
+            
+            % do nothing
+
+        end
   end
 
 
