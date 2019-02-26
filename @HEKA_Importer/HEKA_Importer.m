@@ -117,11 +117,7 @@ classdef HEKA_Importer < handle
              obj = HEKA_Importer(fullfile(path,file));
              
 			end
-			function obj = TEST(varargin) %TEST
-            
-            % do nothing
 
-        end
   end
 
 
