@@ -97,7 +97,7 @@ RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
-
+ 
 for iR=1:nRecs
 	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
 
