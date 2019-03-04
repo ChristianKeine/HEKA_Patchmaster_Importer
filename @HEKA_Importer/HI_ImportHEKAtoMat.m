@@ -85,9 +85,9 @@ for iidx = fileExt
 		Magic = fread(fh, 4, 'uint8=>char');
 		Levels=fread(fh, 1, 'int32=>int32');
 		Sizes=fread(fh, double(Levels), 'int32=>int32');
-		% Get the data tree form the pulse file
 		Position=ftell(fh);
 		
+		% Get the tree structures form the file sections
 		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1});
 	else
 		obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
