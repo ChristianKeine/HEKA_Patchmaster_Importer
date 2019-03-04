@@ -45,7 +45,7 @@ if size(solTree,2) > 1 % OTHERWISE NOT SOLUTIONS DEFINED
 	end
 	%% ASSIGN SOLUTION NAMES TO SOLUTION NUMBERS FROM RECORDINGS IN RECTABLE
 	
-	getSolutionName = @(ID,sNames,sNumber) sNames(sNumber(ID));
+	getSolutionName = @(ID,sNames,sNumber) sNames(sNumber==ID);
 	obj.RecTable.ExternalSolution = cellfun(getSolutionName,obj.RecTable.ExternalSolution,repmat({sNames},size(obj.RecTable.ExternalSolution)),repmat({sNumber},size(obj.RecTable.ExternalSolution)));
 	obj.RecTable.InternalSolution = cellfun(getSolutionName,obj.RecTable.InternalSolution,repmat({sNames},size(obj.RecTable.InternalSolution)),repmat({sNumber},size(obj.RecTable.InternalSolution)));
 	
