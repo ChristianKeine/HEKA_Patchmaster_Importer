@@ -111,8 +111,10 @@ for iR=1:nRecs
 	RecModeID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrRecordingMode];
 	RecordingMode{iR,:} = reshape(RecModeNames(RecModeID{iR}+1),1,numel(RecModeID{iR,:}));
 	
-	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrExternalSolution];
-	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrInternalSolution];
+	% SOLUTIONS SHOULD BE IDENTICAL FOR EACH CHANNEL, SO IMPORT FIRST
+	% CHANNEL ONLY
+	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
+	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
 	
 	Rs{iR} = NaN(1,Recs(iR).SeNumbersw);
 	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
