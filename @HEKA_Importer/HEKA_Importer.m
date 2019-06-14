@@ -34,7 +34,7 @@ classdef HEKA_Importer < handle
 % 
 % - OUTPUTS:
 % Heka_Importer creates object containing the following properties:
-% 
+%  
 % - trees		struct			structure containing the dataTree 
 %  								(from the .pul file), the stimTree 
 % 								(from the .pgf file)and solTree 
