@@ -95,7 +95,6 @@ Rs = cell(nRecs,1);
 Rs_uncomp = cell(nRecs,1);
 RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
-TimeStamp = cell(nREcs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
 
@@ -121,9 +120,8 @@ for iR=1:nRecs
 	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
 	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
 	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
-% 	TimeStamp{iR} = datetime(NaT(1,Recs(iR).SeNumbersw));
-	TimeStamp{iR} = repmat(datetime(0,0,0),1,Recs(iR).SeNumbersw);
-
+	TimeStamp{iR} = datetime(NaN(1,Recs(iR).SeNumbersw));
+	
 	for iS=1:Recs(iR).SeNumbersw
 		Rs_uncomp{iR}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
 		Rs{iR}(1,iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
