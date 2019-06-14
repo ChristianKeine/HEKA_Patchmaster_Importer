@@ -17,6 +17,17 @@ function HI_extractHEKADataTree(obj)
 %4: Sweep
 %5: Trace/Channel
 
+%check if datetime functions exist
+
+if ~isempty(which('datetime')) && ~isempty(which('NaT'))
+	hasDateTime = true;
+else
+	hasDateTime = false;
+end
+ 	
+	hasDateTime = false;
+
+
 dataTree = obj.trees.dataTree;
 
 allExp = find(~cellfun(@isempty,dataTree(:,2)));
@@ -30,7 +41,7 @@ for iExp = 1:nExperiments
 	else
 		nextExp = allExp(iExp+1);
 	end
-	Rt{iExp} = ImportRecordings(dataTree,allExp(iExp),nextExp,iExp);
+	Rt{iExp} = ImportRecordings(dataTree,allExp(iExp),nextExp,iExp,hasDateTime);
 end
 
 obj.RecTable = [vertcat(Rt{:}),obj.RecTable];
@@ -41,7 +52,7 @@ end
 
 
 
-function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum)
+function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum,hasDateTime)
 
 
 % RESORT STRUCTURES TO ALSO CONTAIN SWEEP AND TRACE/CHANNEL INFORMATION
@@ -54,7 +65,7 @@ for iR = 1:numel(recIDs)
 	% GET RECORDING INFORMATION
 	Recs(iR) = dataTree{recIDs(iR),3};
 	%GET ASSOCIATED SWEEPS & TRACES
-	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));	
+	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));
 end
 
 
@@ -73,7 +84,7 @@ nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 AmpState = [Recs(:).SeAmplifierState];
 Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 
-	% THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
+% THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
 % RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
 % Rs_uncomp = reshape(1./[AmpState(:).E9GSeries],numel(AmpState),1);
 % Rs = Rs_uncomp - reshape([AmpState(:).E9RsValue],numel(AmpState),1);
@@ -95,13 +106,13 @@ Rs = cell(nRecs,1);
 Rs_uncomp = cell(nRecs,1);
 RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
-TimeStamp = cell(nREcs,1);
+TimeStamp = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
 
 for iR=1:nRecs
 	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
-
+	
 	% NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
 	% RECORDING
 	TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
@@ -121,16 +132,24 @@ for iR=1:nRecs
 	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
 	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
 	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
-% 	TimeStamp{iR} = datetime(NaT(1,Recs(iR).SeNumbersw));
-	TimeStamp{iR} = repmat(datetime(0,0,0),1,Recs(iR).SeNumbersw);
-
+	if hasDateTime
+		TimeStamp{iR} = NaT(1,Recs(iR).SeNumbersw);
+	else
+		TimeStamp{iR} = cell(1,Recs(iR).SeNumbersw);
+	end
+	
+	
 	for iS=1:Recs(iR).SeNumbersw
 		Rs_uncomp{iR}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
 		Rs{iR}(1,iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
 		Cm{iR}(1,iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
-		TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+		if hasDateTime
+			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+		else
+			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+		end
 	end
-		RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
+	RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
 end
 
 
@@ -154,6 +173,7 @@ RecTab = table(ExperimentNumber,...
 	ExternalSolutionID,...
 	InternalSolutionID,...
 	SR,...
+	TimeStamp,...
 	'VariableNames',{'Experiment',...
 	'ExperimentName',...
 	'Rec',...
@@ -172,7 +192,8 @@ RecTab = table(ExperimentNumber,...
 	'Temperature',...
 	'ExternalSolution',...
 	'InternalSolution',...
-	'SR'});
+	'SR',...
+	'TimeStamp'});
 end
 
 
