@@ -25,7 +25,6 @@ else
 	hasDateTime = false;
 end
  	
-	hasDateTime = false;
 
 
 dataTree = obj.trees.dataTree;
