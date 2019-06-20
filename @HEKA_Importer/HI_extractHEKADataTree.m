@@ -81,7 +81,6 @@ nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
-Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 
 % THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
 % RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
@@ -105,6 +104,7 @@ Rs = cell(nRecs,1);
 Rs_uncomp = cell(nRecs,1);
 RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
+Vhold = cell(nRecs,1);
 TimeStamp = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
@@ -127,10 +127,12 @@ for iR=1:nRecs
 	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
 	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
 	
-	Rs{iR} = NaN(1,Recs(iR).SeNumbersw);
-	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
-	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
-	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
+	Rs{iR} = cell(1,Recs(iR).SeNumbersw);
+	Rs_uncomp{iR} = cell(1,Recs(iR).SeNumbersw);
+	RsFractionComp{iR} = cell(1,Recs(iR).SeNumbersw);
+	Cm{iR} = cell(1,Recs(iR).SeNumbersw);
+	Vhold{iR} = cell(1,Recs(iR).SeNumbersw);
+	
 	if hasDateTime
 		TimeStamp{iR} = NaT(1,Recs(iR).SeNumbersw);
 	else
@@ -140,16 +142,18 @@ for iR=1:nRecs
 	
 % 	for iS=1:Recs(iR).SeNumbersw
 for iS=1:numel(Recs(iR).Sweeps)
-		Rs_uncomp{iR}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
-		Rs{iR}(1,iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
-		Cm{iR}(1,iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
+		Rs_uncomp{iR}{1,iS} = 1./[Recs(iR).Sweeps(iS).Traces(:).TrGSeries];
+		Rs{iR}{1,iS} = Rs_uncomp{iR}{1,iS} - [Recs(iR).Sweeps(iS).Traces(:).TrRsValue];
+		Cm{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrCSlow];
+		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(1).TrTrHolding];
+		RsFractionComp{iR}{1,iS} = 1-Rs{iR}{1,iS}./Rs_uncomp{iR}{1,iS};
+
 		if hasDateTime
 			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
 		else
 			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
 		end
 	end
-	RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
 end
 
 
