@@ -149,7 +149,7 @@ for iS=1:numel(Recs(iR).Sweeps) % replaced from Recs(iR).SeNumbersw due to occas
 		Rs_uncomp{iR}{1,iS} = 1./[Recs(iR).Sweeps(iS).Traces(:).TrGSeries];
 		Rs{iR}{1,iS} = Rs_uncomp{iR}{1,iS} - [Recs(iR).Sweeps(iS).Traces(:).TrRsValue];
 		Cm{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrCSlow];
-		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(1).TrTrHolding];
+		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrTrHolding];
 		RsFractionComp{iR}{1,iS} = 1-Rs{iR}{1,iS}./Rs_uncomp{iR}{1,iS};
 
 		if hasDateTime
