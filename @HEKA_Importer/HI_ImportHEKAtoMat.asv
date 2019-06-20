@@ -422,17 +422,9 @@ tr.TrSECM_Y=fread(fh, 1, 'double=>double');%        = 392; (* LONGREAL *)
 tr.TrSECM_Z=fread(fh, 1, 'double=>double');%        = 400; (* LONGREAL *)
 
 % added 06/2019
-tr.TrTrHolding = fread(fh, 1, 'double=>double');%          = 408; (* LONGREAL *)
-tr.TrTcEnumerator = fread(fh, 1, 'int32=>int32');%     = 416; (* INT32 *)
-tr.TrXTrace = fread(fh, 1, 'int32=>int32');%             = 420; (* INT32 *)
-tr.TrIntSolValue = fread(fh, 1, 'double=>double');%        = 424; (* LONGREAL *)
-tr.TrExtSolValue = fread(fh, 1, 'double=>double');%       = 432; (* LONGREAL *)
-tr.TrIntSolName = deblank(fread(fh, 32, 'uint8=>char')');%       = 440; (* String32Size *)
-tr.TrExtSolName = deblank(fread(fh, 32, 'uint8=>char')');%        = 472; (* String32Size *)
-tr.TrDataPedestal = fread(fh, 1, 'double=>double');%       = 504; (* LONGREAL *)
 
 
-tr.TraceRecSize=512;
+tr.TraceRecSize=408;
 
 tr=orderfields(tr);
 

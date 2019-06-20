@@ -138,7 +138,8 @@ for iR=1:nRecs
 	end
 	
 	
-	for iS=1:Recs(iR).SeNumbersw
+% 	for iS=1:Recs(iR).SeNumbersw
+for iS=1:numel(Recs(iR).Sweeps)
 		Rs_uncomp{iR}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
 		Rs{iR}(1,iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
 		Cm{iR}(1,iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
