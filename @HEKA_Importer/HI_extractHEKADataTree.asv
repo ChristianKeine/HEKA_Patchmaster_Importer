@@ -77,7 +77,7 @@ RecNum = reshape(1:nRecs,nRecs,1);
 %EXTRACT INFORMATION FROM LEVEL 3
 Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
 Comment = reshape({Recs(:).SeComment},numel(Recs),1);
-% nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
+nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
@@ -91,8 +91,6 @@ AmpState = [Recs(:).SeAmplifierState];
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
 Temperature = NaN(nRecs,1);
-nSweeps = NaN(nRecs,1);
-
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
 ChName = cell(nRecs,1);
@@ -129,18 +127,16 @@ for iR=1:nRecs
 	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
 	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
 	
-	nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
-	
-	Rs{iR} = cell(1,nSweeps(iR));
-	Rs_uncomp{iR} = cell(1,nSweeps(iR));
-	RsFractionComp{iR} = cell(1,nSweeps(iR));
-	Cm{iR} = cell(1,nSweeps(iR));
-	Vhold{iR} = cell(1,nSweeps(iR));
+	Rs{iR} = cell(1,Recs(iR).SeNumbersw);
+	Rs_uncomp{iR} = cell(1,Recs(iR).SeNumbersw);
+	RsFractionComp{iR} = cell(1,Recs(iR).SeNumbersw);
+	Cm{iR} = cell(1,Recs(iR).SeNumbersw);
+	Vhold{iR} = cell(1,Recs(iR).SeNumbersw);
 	
 	if hasDateTime
-		TimeStamp{iR} = NaT(1,nSweeps(iR));
+		TimeStamp{iR} = NaT(1,Recs(iR).SeNumbersw);
 	else
-		TimeStamp{iR} = cell(1,nSweeps(iR));
+		TimeStamp{iR} = cell(1,Recs(iR).SeNumbersw);
 	end
 	
 % added export for each sweep and channel	
