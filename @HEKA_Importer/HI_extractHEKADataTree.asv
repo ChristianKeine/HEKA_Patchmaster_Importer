@@ -77,7 +77,7 @@ RecNum = reshape(1:nRecs,nRecs,1);
 %EXTRACT INFORMATION FROM LEVEL 3
 Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
 Comment = reshape({Recs(:).SeComment},numel(Recs),1);
-nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
+% nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
 AmpState = [Recs(:).SeAmplifierState];
@@ -91,6 +91,8 @@ AmpState = [Recs(:).SeAmplifierState];
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
 Temperature = NaN(nRecs,1);
+nSweeps = NaN(nRecs,1);
+
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
 ChName = cell(nRecs,1);
@@ -127,33 +129,58 @@ for iR=1:nRecs
 	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
 	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
 	
-	Rs{iR} = cell(1,Recs(iR).SeNumbersw);
-	Rs_uncomp{iR} = cell(1,Recs(iR).SeNumbersw);
-	RsFractionComp{iR} = cell(1,Recs(iR).SeNumbersw);
-	Cm{iR} = cell(1,Recs(iR).SeNumbersw);
-	Vhold{iR} = cell(1,Recs(iR).SeNumbersw);
+	nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
+	
+	Rs{iR} = cell(1,nSweeps(iR));
+	Rs_uncomp{iR} = cell(1,nSweeps(iR));
+	RsFractionComp{iR} = cell(1,nSweeps(iR));
+	Cm{iR} = cell(1,nSweeps(iR));
+	Vhold{iR} = cell(1,nSweeps(iR));
 	
 	if hasDateTime
-		TimeStamp{iR} = NaT(1,Recs(iR).SeNumbersw);
+		TimeStamp{iR} = NaT(1,nSweeps(iR));
 	else
-		TimeStamp{iR} = cell(1,Recs(iR).SeNumbersw);
+		TimeStamp{iR} = cell(1,nSweeps(iR));
 	end
 	
 % added export for each sweep and channel	
 
-for iS=1:numel(Recs(iR).Sweeps) % replaced from Recs(iR).SeNumbersw due to occasional mismatch
-		Rs_uncomp{iR}{1,iS} = 1./[Recs(iR).Sweeps(iS).Traces(:).TrGSeries];
-		Rs{iR}{1,iS} = Rs_uncomp{iR}{1,iS} - [Recs(iR).Sweeps(iS).Traces(:).TrRsValue];
-		Cm{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrCSlow];
-		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(1).TrTrHolding];
-		RsFractionComp{iR}{1,iS} = 1-Rs{iR}{1,iS}./Rs_uncomp{iR}{1,iS};
+% testing:
 
+nChannels = numel(ChUnit{iR,:});
+
+for iCh = 1:nChannels
+	for iS = 1:nSweeps(iR)
+	Rs_uncomp{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
+	Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
+	Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
+	Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
+
+	if iCh == 1
 		if hasDateTime
 			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
 		else
 			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
 		end
 	end
+	RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
+
+end
+
+
+% for iS=1:nSweeps(iR) % replaced from Recs(iR).SeNumbersw due to occasional mismatch
+% 		Rs_uncomp{iR}{1:nChannels} = 1./[Recs(iR).Sweeps(iS).Traces(:).TrGSeries];
+% 		Rs{iR}{1,iS} = Rs_uncomp{iR}{1,iS} - [Recs(iR).Sweeps(iS).Traces(:).TrRsValue];
+% 		Cm{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrCSlow];
+% 		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrTrHolding];
+% 		RsFractionComp{iR}{1,iS} = 1-Rs{iR}{1,iS}./Rs_uncomp{iR}{1,iS};
+% 
+% 		if hasDateTime
+% 			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+% 		else
+% 			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+% 		end
+% 	end
 end
 
 
