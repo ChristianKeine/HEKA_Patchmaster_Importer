@@ -495,6 +495,14 @@ p.RootSize = 88;%          =  88
 
 p=orderfields(p);
 
+% in v1000:
+%    (* RootRecord        = RECORD *)
+%    RoVersion            =   0; (* INT32 *)
+%    RoDataBaseName       =   4; (* SolutionNameSize *)
+%    RoCRC                =  84; (* CARD32 *)
+%    RootSize             =  88;
+
+
 end
 
 
