@@ -353,14 +353,28 @@ sw.SwFiller1=fread(fh, 1, 'int32=>int32');%         = 116; (* INT32 *)
 sw.SwMarkers=fread(fh, 4, 'double=>double');%            = 120; (* ARRAY[0..3] OF LONGREAL *)
 sw.SwFiller2=fread(fh, 1, 'int32=>int32');%         = 152; (* INT32 *)
 sw.SwCRC=fread(fh, 1, 'int32=>int32');%                = 156; (* CARD32 *)
-sw.SweepRecSize         = 160;%      (* = 20 * 8 *)
+sw.SwSwHolding = fread(fh,16,'double=>double');% = 160; (* ARRAY[0..15] OF LONGREAL, see SwHoldingNo *)
+sw.SweepRecSize = 288;%      (* = 36*8)
+% % added in v1000
+% sw.SwSwUserParamEx = fread(fh,8,'double=>double');    % = (* ARRAY[0..7] OF LONGREAL *)   
+% sw.SweepRecSize = 352;%      (* = 36*8)
+
+
+
+
 sw=orderfields(sw);
 sw.Traces = []; % used to store all the traces/channels within the sweep structure later on
+
+
+
 end
 
 %--------------------------------------------------------------------------
 function tr=getTrace(fh)
 %--------------------------------------------------------------------------
+
+% identical between v9 and v1000
+
 tr.TrMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
 tr.TrLabel=deblank(fread(fh, 32, 'uint8=>char')');%              =   4; (* String32Type *)
 tr.TrTraceCount=fread(fh, 1, 'int32=>int32');%         =  36; (* INT32 *)
@@ -430,7 +444,6 @@ tr.TrExtSolValue = fread(fh, 1, 'double=>double');%       = 432; (* LONGREAL *)
 tr.TrIntSolName = deblank(fread(fh, 32, 'uint8=>char')');%       = 440; (* String32Size *)
 tr.TrExtSolName = deblank(fread(fh, 32, 'uint8=>char')');%        = 472; (* String32Size *)
 tr.TrDataPedestal = fread(fh, 1, 'double=>double');%       = 504; (* LONGREAL *)
-
 
 tr.TraceRecSize=512;
 
