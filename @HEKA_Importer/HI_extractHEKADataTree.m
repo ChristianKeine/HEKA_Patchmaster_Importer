@@ -80,7 +80,7 @@ Comment = reshape({Recs(:).SeComment},numel(Recs),1);
 % nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
-AmpState = [Recs(:).SeAmplifierState];
+% AmpState = [Recs(:).SeAmplifierState];
 
 % THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
 % RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
