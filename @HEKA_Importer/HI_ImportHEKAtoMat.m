@@ -749,19 +749,21 @@ end
 function L=getSeLockInParams(fh)
 %--------------------------------------------------------------------------
 offset=ftell(fh);
-L.loExtCalPhase=fread(fh, 1, 'double=>double') ;%        =   0; (* LONGREAL *)
-L.loExtCalAtten=fread(fh, 1, 'double=>double') ;%        =   8; (* LONGREAL *)
-L.loPLPhase=fread(fh, 1, 'double=>double') ;%            =  16; (* LONGREAL *)
-L.loPLPhaseY1=fread(fh, 1, 'double=>double') ;%          =  24; (* LONGREAL *)
-L.loPLPhaseY2=fread(fh, 1, 'double=>double') ;%          =  32; (* LONGREAL *)
-L.loUsedPhaseShift=fread(fh, 1, 'double=>double') ;%     =  40; (* LONGREAL *)
-L.loUsedAttenuation=fread(fh, 1, 'double=>double');%    =  48; (* LONGREAL *)
-L.loFiller1=fread(fh, 1, 'double=>double');
-L.loExtCalValid=fread(fh, 1, 'uint8=>logical') ;%        =  64; (* BOOLEAN *)
-L.loPLPhaseValid=fread(fh, 1, 'uint8=>logical') ;%       =  65; (* BOOLEAN *)
-L.loLockInMode=fread(fh, 1, 'uint8=>uint8') ;%         =  66; (* BYTE *)
-L.loCalMode=fread(fh, 1, 'uint8=>uint8') ;%            =  67; (* BYTE *)
-L.LockInParamsSize=96;
+L.loExtCalPhase			= fread(fh, 1, 'double=>double');%      =   0; (* LONGREAL *)
+L.loExtCalAtten			= fread(fh, 1, 'double=>double');%      =   8; (* LONGREAL *)
+L.loPLPhase				= fread(fh, 1, 'double=>double');%		=  16; (* LONGREAL *)
+L.loPLPhaseY1			= fread(fh, 1, 'double=>double');%      =  24; (* LONGREAL *)
+L.loPLPhaseY2			= fread(fh, 1, 'double=>double');%      =  32; (* LONGREAL *)
+L.loUsedPhaseShift		= fread(fh, 1, 'double=>double');%		=  40; (* LONGREAL *)
+L.loUsedAttenuation		= fread(fh, 1, 'double=>double');%		=  48; (* LONGREAL *)
+	L.loSpare			= fread(fh, 1, 'double=>double');%		=  56; (* LONGREAL *)
+L.loExtCalValid			= fread(fh, 1, 'uint8=>logical');%      =  64; (* BOOLEAN *)
+L.loPLPhaseValid		= fread(fh, 1, 'uint8=>logical');%      =  65; (* BOOLEAN *)
+L.loLockInMode			= fread(fh, 1, 'uint8=>uint8');%        =  66; (* BYTE *)
+L.loCalMode				= fread(fh, 1, 'uint8=>uint8');%        =  67; (* BYTE *)
+	L.loSpare2			= fread(fh, 7, 'int32=>in32');%			=  68; (* remaining *)
+L.LockInParamsSize		= 96;
+
 fseek(fh, offset+L.LockInParamsSize, 'bof');
 
 end
@@ -893,8 +895,7 @@ A.sSpare5				= fread(fh, 1, 'uint8=>uint8');%		= 375; (* BYTE *)
 A.sCCStimDacScale		= fread(fh, 1, 'double=>double');%		= 376; (* LONGREAL *)
 A.sVmonFiltBandwidth	= fread(fh, 1, 'double=>double');%		= 384; (* LONGREAL *)
 A.sVmonFiltFrequency	= fread(fh, 1, 'double=>double');%		= 392; (* LONGREAL *)
-A.AmplifierStateSize	= 400;%                  (* = 50 * 8 *)
-
+A.AmplifierStateSize	= 400;%								           (* = 50 * 8 *)
 
 fseek(fh, offset+A.AmplifierStateSize, 'bof');
 
