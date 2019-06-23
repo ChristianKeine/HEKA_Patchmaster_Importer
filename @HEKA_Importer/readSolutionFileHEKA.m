@@ -1,28 +1,29 @@
-function [Tree, Position, Counter, nchild]=readSolutionFileHEKA(obj,fh, Tree, Sizes, Level, Position, Counter)
+function readSolutionFileHEKA(obj)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s, Counter]=getOneSolutionRecord(fh, Level, Counter);
-Tree{Counter, Level+1}=s;
-Position=Position+Sizes(Level+1);
-fseek(fh, Position, 'bof');
-nchild=fread(fh, 1, 'int32=>int32');
-Position=ftell(fh);
+s = getOneSolutionRecord(obj);
+obj.fileData.Tree{obj.fileData.Counter, obj.fileData.Level+1} = s;
+
+obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(obj.fileData.Level+1);
+fseek(obj.fileData.fh, obj.fileData.Position, 'bof');
+obj.fileData.nchild=fread(obj.fileData.fh, 1, 'int32=>int32');
+obj.fileData.Position=ftell(obj.fileData.fh);
 
 end
 
 
 %--------------------------------------------------------------------------
-function [rec, Counter]=getOneSolutionRecord(fh, Level, Counter)
+function rec=getOneSolutionRecord(obj)
 %--------------------------------------------------------------------------
 % Gets one record
-Counter=Counter+1;
+obj.fileData.Counter = obj.fileData.Counter+1;
 switch Level
 	case 0
-		rec=getSolutionRoot(fh);
+		rec=getSolutionRoot(obj);
 	case 1
-		rec=getSolutionRecord(fh);
+		rec=getSolutionRecord(obj);
 	case 2
-		rec=getChemicalRecord(fh);
+		rec=getChemicalRecord(obj);
 		
 	otherwise
 		error('Unexpected Level');
@@ -31,8 +32,10 @@ end
 end
 
 %--------------------------------------------------------------------------
-function p=getSolutionRoot(fh)
+function p=getSolutionRoot(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 p.RoVersion			= fread(fh, 1, 'int16=>int16'); %			= 0; (* INT16 *)
 p.RoDataBaseName	= deblank(fread(fh, 80, 'uint8=>char')');%  = 2; (* SolutionNameSize *)
 p.RoSpare1			= fread(fh, 1, 'int16=>int16');%			= 82; (* INT16 *)
@@ -43,9 +46,11 @@ p=orderfields(p);
 
 end
 
-
-function s=getSolutionRecord(fh)
 %--------------------------------------------------------------------------
+function s=getSolutionRecord(obj)
+%--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 s.SoNumber			= fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
 s.SoName			= deblank(fread(fh, 80, 'uint8=>char')');%      =   4; (* SolutionNameSize  *)
 s.SoNumeric			= fread(fh, 1, 'real*4=>double');%				=  84; (* REAL *) *)
@@ -61,8 +66,10 @@ s=orderfields(s);
 end
 
 %--------------------------------------------------------------------------
-function c=getChemicalRecord(fh)
+function c=getChemicalRecord(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 c.ChConcentration	= fread(fh, 1, 'real*4=>double');%              = 0; (* REAL *)
 c.ChName			= deblank(fread(fh, 30, 'uint8=>char')');%      = 4; (* ChemicalNameSize *)
 c.ChSpare1			= fread(fh, 1, 'int16=>int16');%				= 34; (* INT16 *)

@@ -31,8 +31,10 @@ end
 end
 
 %--------------------------------------------------------------------------
-function p=getAmplifierRootRecord(fh)
+function p=getAmplifierRootRecord(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 p.RoVersion			= fread(fh, 1, 'int32=>int32');%			= 0; (* INT32 *)
 p.RoMark			= fread(fh, 1, 'int32=>int32');%            =   4; (* INT32 *)
 p.RoVersionName		= deblank(fread(fh, 32, 'uint8=>char')');%  =   8; (* String32Type *)
@@ -49,8 +51,10 @@ p=orderfields(p);
 end
 
 %--------------------------------------------------------------------------
-function s=getAmplifierSeriesRecord(fh)
+function s=getAmplifierSeriesRecord(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 s.SeMark			= fread(fh, 1, 'int32=>int32');%           =   0; (* INT32 *)
 s.SeSeriesCount		= fread(fh, 1, 'int32=>int32');%		   =   4; (* INT32 *)
 s.SeFiller1			= fread(fh, 1, 'int32=>int32');%		   =   8; (* INT32 *)
@@ -61,8 +65,10 @@ s=orderfields(s);
 
 end
 
-%%
-function a=getAmplifierStateRecord(fh)
+%--------------------------------------------------------------------------
+function a=getAmplifierStateRecord(obj)
+%--------------------------------------------------------------------------
+fh = obj.fileData.fh;
 
 a.AmMark			= fread(fh, 1, 'int32=>int32');%            =   0; (* INT32 *)
 a.AmStateCount		= fread(fh, 1, 'int32=>int32');%			=   4; (* INT32 *)

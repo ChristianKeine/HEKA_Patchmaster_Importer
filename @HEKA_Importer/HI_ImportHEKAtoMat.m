@@ -217,8 +217,8 @@ switch obj.fileData.fileExt
 
 end
 
+	obj.fileData.Level = obj.fileData.Level+1; %% This counts too high
 for k=1:double(obj.fileData.nchild)
-	obj.fileData.Level = obj.fileData.Level+1;
 	getTreeReentrant(obj);
 end
 
