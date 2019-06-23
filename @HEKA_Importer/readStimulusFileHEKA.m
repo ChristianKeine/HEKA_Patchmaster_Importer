@@ -1,29 +1,29 @@
-function [Tree, Position, Counter, nchild]=readStimulusFileHEKA(obj,fh, Tree, Sizes, Level, Position, Counter)
+function readStimulusFileHEKA(obj)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-[s, Counter]=getOneStimRecord(fh, Level, Counter,obj);
-Tree{Counter, Level+1}=s;
-Position=Position+Sizes(Level+1);
-fseek(fh, Position, 'bof');
-nchild=fread(fh, 1, 'int32=>int32');
-Position=ftell(fh);
-
+s = getOneStimRecord(obj);
+obj.fileData.Tree{obj.fileData.Counter, obj.fileData.Level+1} = s;
+obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(obj.fileData.Level+1);
+fseek(obj.fileData.fh, obj.fileData.Position, 'bof');
+obj.fileData.nchild=fread(obj.fileData.fh, 1, 'int32=>int32');
+obj.fileData.Position=ftell(obj.fileData.fh);
 end
 
+
 %--------------------------------------------------------------------------
-function [rec, Counter]=getOneStimRecord(fh, Level, Counter,obj)
+function rec=getOneStimRecord(obj)
 %--------------------------------------------------------------------------
 % Gets one record
-Counter=Counter+1;
-switch Level
+obj.fileData.Counter = obj.fileData.Counter+1;
+switch obj.fileData.Level
 	case 0
-		rec=getStimRoot(fh,obj);
+		rec=getStimRoot(obj);
 	case 1
-		rec=getStimulation(fh,obj);
+		rec=getStimulation(obj);
 	case 2
-		rec=getChannel(fh,obj);
+		rec=getChannel(obj);
 	case 3
-		rec=getStimSegment(fh,obj);
+		rec=getStimSegment(obj);
 	otherwise
 		error('Unexpected Level');
 end
@@ -34,8 +34,10 @@ end
 % specification
 
 %--------------------------------------------------------------------------
-function p=getStimRoot(fh,obj)
+function p=getStimRoot(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 p.RoVersion=fread(fh, 1, 'int32=>int32');
 p.RoMark=fread(fh, 1, 'int32=>int32');%               =   4; (* INT32 *)
 p.RoVersionName=deblank(fread(fh, 32, 'uint8=>char')');%        =   8; (* String32Type *)
@@ -54,8 +56,10 @@ p=orderfields(p);
 end
 
 %--------------------------------------------------------------------------
-function s=getStimulation(fh,obj)
+function s=getStimulation(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 % Stimulus level
 s.stMark=fread(fh, 1, 'int32=>int32');%                =   0; (* INT32 *)
 s.stEntryName=deblank(fread(fh, 32, 'uint8=>char')');%           =   4; (* String32Type *)
@@ -100,8 +104,10 @@ s=orderfields(s);
 end
 
 %--------------------------------------------------------------------------
-function c=getChannel(fh,obj)
+function c=getChannel(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 c.chMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
 c.chLinkedChannel=fread(fh, 1, 'int32=>int32');%      =   4; (* INT32 *)
 c.chCompressionFactor=fread(fh, 1, 'int32=>int32');%  =   8; (* INT32 *)
@@ -178,8 +184,10 @@ c=orderfields(c);
 end
 
 %--------------------------------------------------------------------------
-function ss=getStimSegment(fh,obj)
+function ss=getStimSegment(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 ss.seMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
 ss.seClass=fread(fh, 1, 'uint8=>uint8');%              =   4; (* BYTE *)
 ss.seDoStore=fread(fh, 1, 'uint8=>logical');%            =   5; (* BOOLEAN *)

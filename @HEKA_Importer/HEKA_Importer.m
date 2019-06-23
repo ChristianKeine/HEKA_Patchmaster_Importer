@@ -130,10 +130,11 @@ classdef HEKA_Importer < handle
         HI_extractHEKASolutionTree(obj);
 		str = HI_time2date(obj,t);
 		
-		readPulseFileHEKA(obj)
-		[Tree, Position, Counter, nchild]=readStimulusFileHEKA(obj,fh, Tree, Sizes, Level, Position, Counter)
-		[Tree, Position, Counter, nchild]=readAmplifierFileHEKA(obj,fh, Tree, Sizes, Level, Position, Counter)
-		[Tree, Position, Counter, nchild]=readSolutionFileHEKA(obj,fh, Tree, Sizes, Level, Position, Counter)
+		readPulseFileHEKA(obj);
+		readStimulusFileHEKA(obj);
+		readAmplifierFileHEKA(obj);
+		readSolutionFileHEKA(obj);
+		
 	end
     
         %% Hide some of the handle class member functions for ease of use.

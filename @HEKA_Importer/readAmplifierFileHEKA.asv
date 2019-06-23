@@ -2,7 +2,7 @@ function readAmplifierFileHEKA(obj)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
 
-s = getOneAmplifierRecord(obj);
+s = getOneRecord(obj);
 obj.fileData.Tree{obj.fileData.Counter, obj.fileData.Level+1} = s;
 
 obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(obj.fileData.Level+1);
@@ -13,17 +13,18 @@ obj.fileData.Position=ftell(obj.fileData.fh);
 end
 
 %--------------------------------------------------------------------------
-function rec=getOneAmplifierRecord(obj)
+function [rec, Counter]=getOneAmplifierRecord(fh, Level, Counter)
 %--------------------------------------------------------------------------
 % Gets one record
-obj.fileData.Counter = obj.fileData.Counter+1;
+Counter=Counter+1;
 switch Level
 	case 0
-		rec=getAmplifierRootRecord(obj);
+		rec=getAmplifierRootRecord(fh);
 	case 1
-		rec=getAmplifierSeriesRecord(obj);
+		rec=getAmplifierSeriesRecord(fh);
 	case 2
-		rec=getAmplifierStateRecord(obj);	
+		rec=getAmplifierStateRecord(fh);
+		
 	otherwise
 		error('Unexpected Level');
 end
