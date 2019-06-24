@@ -175,38 +175,6 @@ end
 s=orderfields(s);
 s.Sweeps = []; % used to store all the sweeps within the recording structure later on
 
-
-
-
-
-% s.SePhotoParams1		= fread(fh, 4, 'double=>double'); %				= 344; (* ARRAY[0..3] OF LONGREAL = 4*8 *)
-
-% s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');% 
-
-
-
-
-
-% s.SeLockInParams = fread(fh,96); %    = 376; (* SeOldLockInSize = 96, see "Pulsed.de" *)
-% s.SeAmplifierState = fread(fh,400); %        = 472; (* SeOldAmpState = 400 -> the AmplStateRecord is now stored in the .amp file *)
-% % s.SeUsername = deblank(fread(fh,80,'uint8=>char')); %  = 872; (* String80Type *)
-% 
-% s.SePhotoParams2		= deblank(fread(fh,160,'uint8=>char')');      %= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-% s.SeFiller1				= fread(fh, 1, 'int32=>int32');%         = 1112; (* INT32 *)
-% s.SeCRC					=  fread(fh, 1, 'int32=>int32');%                = 1116; (* CARD32 *)
-% 
-% s.SeSeUserParams2		= fread(fh, 4, 'double=>double'); %= 1120; (* ARRAY[0..3] OF LONGREAL *)
-% for k=1:4 %= 1152; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-% 	s.SeSeUserParamDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-% 	s.SeSeUserParamDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
-% end
-% s.SeScanParams			= fread(fh, 96, 'uint8=>uint8'); %= 1312; (* ScanParamsSize = 96 (ElProScan Extension) *)
-% 
-% for k=1:8 %= 1408; (* ARRAY[0..7] OF UserParamDescrType = 8*40 *) 
-% 	s.SeSeUserDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-% 	s.SeSeUserDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');
-% end
-% s.SeriesRecSize			= 1728;%      = 1728;
 end
 
 %--------------------------------------------------------------------------
@@ -215,14 +183,16 @@ function sw=getSweep(obj)
 
 fh = obj.fileData.fh;
 
-sw.SwMark=fread(fh, 1, 'int32=>int32');%               =   0; (* INT32 *)
-sw.SwLabel=deblank(fread(fh, 32, 'uint8=>char')');%              =   4; (* String32Type *)
-sw.SwAuxDataFileOffset=fread(fh, 1, 'int32=>int32');%  =  36; (* INT32 *)
-sw.SwStimCount=fread(fh, 1, 'int32=>int32');%          =  40; (* INT32 *)
-sw.SwSweepCount=fread(fh, 1, 'int32=>int32');%         =  44; (* INT32 *)
-sw.SwTime=fread(fh, 1, 'double=>double');%               =  48; (* LONGREAL *)
-sw.SwTimeMATLAB=obj.HI_time2date(sw.SwTime);% Also add in MATLAB datenum format
-sw.SwTimer=fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
+sw.SwMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
+sw.SwLabel				= deblank(fread(fh, 32, 'uint8=>char')');%		=   4; (* String32Type *)
+sw.SwAuxDataFileOffset	= fread(fh, 1, 'int32=>int32');%				=  36; (* INT32 *)
+sw.SwStimCount			= fread(fh, 1, 'int32=>int32');%				=  40; (* INT32 *)
+sw.SwSweepCount			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
+sw.SwTime				= fread(fh, 1, 'double=>double');%              =  48; (* LONGREAL *)
+sw.SwTimeMATLAB			= obj.HI_time2date(sw.SwTime);%					Also add in MATLAB datenum format
+sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
+
+
 sw.SwSwUserParams=fread(fh, 2, 'double=>double');%       =  64; (* ARRAY[0..1] OF LONGREAL *)
 sw.SwPipPressure=fread(fh, 2, 'double=>double');	 % =  80; (* LONGREAL *
 sw.SwRMSNoise=fread(fh,2,'double=>double'); %           =  88; (* LONGREAL *)
