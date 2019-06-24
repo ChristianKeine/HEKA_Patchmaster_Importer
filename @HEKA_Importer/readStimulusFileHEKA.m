@@ -1,9 +1,9 @@
-function readStimulusFileHEKA(obj)
+function readStimulusFileHEKA(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-s = getOneStimRecord(obj);
-obj.fileData.Tree{obj.fileData.Counter, obj.fileData.Level+1} = s;
-obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(obj.fileData.Level+1);
+s = getOneStimRecord(obj,Level);
+obj.fileData.Tree{obj.fileData.Counter, Level+1} = s;
+obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(Level+1);
 fseek(obj.fileData.fh, obj.fileData.Position, 'bof');
 obj.fileData.nchild=fread(obj.fileData.fh, 1, 'int32=>int32');
 obj.fileData.Position=ftell(obj.fileData.fh);
@@ -11,11 +11,11 @@ end
 
 
 %--------------------------------------------------------------------------
-function rec=getOneStimRecord(obj)
+function rec=getOneStimRecord(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record
 obj.fileData.Counter = obj.fileData.Counter+1;
-switch obj.fileData.Level
+switch Level
 	case 0
 		rec=getStimRoot(obj);
 	case 1

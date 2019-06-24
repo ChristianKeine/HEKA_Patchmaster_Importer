@@ -93,7 +93,8 @@ for iidx = fileExt
 		obj.fileData.Position = Position;
 		obj.fileData.fileExt = iidx{1};
 		
-		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(fh, Sizes, Position, iidx{1},obj);
+		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(obj);
+		
 	else
 		obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
 	end
@@ -161,11 +162,11 @@ switch h.oSignature
 		isBundled=false;
 	case {'DAT1' 'DAT2'}
 		% Newer format
-		h.oVersion=fread(fh, 32, 'uint8=>char')';
-		h.oTime=fread(fh, 1, 'double');
-		h.oItems=fread(fh, 1, 'int32=>int32');
-		h.oIsLittleEndian=fread(fh, 1, 'uint8=>logical');
-		h.BundleHeaderSize=256;
+		h.oVersion			= fread(fh, 32, 'uint8=>char')';
+		h.oTime				= fread(fh, 1, 'double');
+		h.oItems			= fread(fh, 1, 'int32=>int32');
+		h.oIsLittleEndian	= fread(fh, 1, 'uint8=>logical');
+		h.BundleHeaderSize	= 256;
 		switch h.oSignature
 			case 'DAT1'
 				h.oBundleItems=[];
@@ -173,10 +174,10 @@ switch h.oSignature
 			case {'DAT2'}
 				fseek(fh, 64, 'bof');
 				for k=1:12
-					h.oBundleItems(k).oStart=fread(fh, 1, 'int32=>int32');
-					h.oBundleItems(k).oLength=fread(fh, 1, 'int32=>int32');
-					h.oBundleItems(k).oExtension=deblank(fread(fh, 8, 'uint8=>char')');
-					h.oBundleItems(k).BundleItemSize=16;
+					h.oBundleItems(k).oStart		 = fread(fh, 1, 'int32=>int32');
+					h.oBundleItems(k).oLength		 = fread(fh, 1, 'int32=>int32');
+					h.oBundleItems(k).oExtension	 = deblank(fread(fh, 8, 'uint8=>char')');
+					h.oBundleItems(k).BundleItemSize = 16;
 				end
 				isBundled=true;
 		end
@@ -189,7 +190,7 @@ end
 
 
 %--------------------------------------------------------------------------
-function [Tree, Counter]=getTree(fh, Sizes, Position, ext,obj)
+function Tree=getTree(obj)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 
@@ -197,30 +198,31 @@ obj.fileData.Counter = 0;
 obj.fileData.Tree = {};
 obj.fileData.Level = 0;
 
-[Tree, Counter] = getTreeReentrant(obj);
+Tree = getTreeReentrant(obj,0);
 end
 
 
-function [Tree, Position, Counter]=getTreeReentrant(obj)
+function Tree=getTreeReentrant(obj,Level)
 %--------------------------------------------------------------------------
 % Recursive routine called from LoadTree
 
 switch obj.fileData.fileExt
 	case '.pul'
-		obj.readPulseFileHEKA;
+		obj.readPulseFileHEKA(Level);
 	case '.pgf'
-		obj.readStimulusFileHEKA;
+		obj.readStimulusFileHEKA(Level);
 	case '.sol'
-		obj.readSolutionFileHEKA;
+		obj.readSolutionFileHEKA(Level);
 	case '.amp'
-		obj.readAmplifierFileHEKA;
+		obj.readAmplifierFileHEKA(Level);
 
 end
 
-	obj.fileData.Level = obj.fileData.Level+1; %% This counts too high
 for k=1:double(obj.fileData.nchild)
-	getTreeReentrant(obj);
+	getTreeReentrant(obj,Level+1);
 end
+
+Tree = obj.fileData.Tree;
 
 end
 

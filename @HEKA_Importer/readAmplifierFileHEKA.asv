@@ -1,11 +1,11 @@
-function readAmplifierFileHEKA(obj)
+function readAmplifierFileHEKA(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
 
-s = getOneRecord(obj);
-obj.fileData.Tree{obj.fileData.Counter, obj.fileData.Level+1} = s;
+s = getOneAmplifierRecord(obj,Level);
+obj.fileData.Tree{obj.fileData.Counter, Level+1} = s;
 
-obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(obj.fileData.Level+1);
+obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(Level+1);
 fseek(obj.fileData.fh, obj.fileData.Position, 'bof');
 obj.fileData.nchild=fread(obj.fileData.fh, 1, 'int32=>int32');
 obj.fileData.Position=ftell(obj.fileData.fh);
@@ -13,18 +13,17 @@ obj.fileData.Position=ftell(obj.fileData.fh);
 end
 
 %--------------------------------------------------------------------------
-function [rec, Counter]=getOneAmplifierRecord(fh, Level, Counter)
+function rec=getOneAmplifierRecord(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record
-Counter=Counter+1;
+obj.fileData.Counter = obj.fileData.Counter+1;
 switch Level
 	case 0
-		rec=getAmplifierRootRecord(fh);
+		rec=getAmplifierRootRecord(obj);
 	case 1
-		rec=getAmplifierSeriesRecord(fh);
+		rec=getAmplifierSeriesRecord(obj);
 	case 2
-		rec=getAmplifierStateRecord(fh);
-		
+		rec=getAmplifierStateRecord(obj);	
 	otherwise
 		error('Unexpected Level');
 end
@@ -32,8 +31,10 @@ end
 end
 
 %--------------------------------------------------------------------------
-function p=getAmplifierRootRecord(fh)
+function p=getAmplifierRootRecord(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 p.RoVersion			= fread(fh, 1, 'int32=>int32');%			= 0; (* INT32 *)
 p.RoMark			= fread(fh, 1, 'int32=>int32');%            =   4; (* INT32 *)
 p.RoVersionName		= deblank(fread(fh, 32, 'uint8=>char')');%  =   8; (* String32Type *)
@@ -50,8 +51,10 @@ p=orderfields(p);
 end
 
 %--------------------------------------------------------------------------
-function s=getAmplifierSeriesRecord(fh)
+function s=getAmplifierSeriesRecord(obj)
 %--------------------------------------------------------------------------
+fh = obj.fileData.fh;
+
 s.SeMark			= fread(fh, 1, 'int32=>int32');%           =   0; (* INT32 *)
 s.SeSeriesCount		= fread(fh, 1, 'int32=>int32');%		   =   4; (* INT32 *)
 s.SeFiller1			= fread(fh, 1, 'int32=>int32');%		   =   8; (* INT32 *)
@@ -62,8 +65,10 @@ s=orderfields(s);
 
 end
 
-%%
-function a=getAmplifierStateRecord(fh)
+%--------------------------------------------------------------------------
+function a=getAmplifierStateRecord(obj)
+%--------------------------------------------------------------------------
+fh = obj.fileData.fh;
 
 a.AmMark			= fread(fh, 1, 'int32=>int32');%            =   0; (* INT32 *)
 a.AmStateCount		= fread(fh, 1, 'int32=>int32');%			=   4; (* INT32 *)
