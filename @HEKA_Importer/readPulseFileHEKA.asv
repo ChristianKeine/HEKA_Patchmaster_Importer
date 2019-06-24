@@ -141,14 +141,15 @@ s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');%		= 872; (* String80Typ
 switch obj.fileData.fileVersion
 	case 9
 		for k=1:4%																= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-			s.SeSeUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-			s.SeSeUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+			s.SeSeUserParamDescr1(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SeSeUserParamDescr1(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 		end
 	case 1000
-		
+		for k=1:4%																= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
+			s.SePhotoParams2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SePhotoParams2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+		end
 end
-
-
 
 s.SeFiller1				= fread(fh, 1, 'int32=>int32');%         = 1112; (* INT32 *)
 s.SeCRC					=  fread(fh, 1, 'int32=>int32');%                = 1116; (* CARD32 *)
@@ -159,7 +160,23 @@ for k=1:4 %= 1152; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
 end
 
 s.SeScanParams			= fread(fh, 96, 'uint8=>uint8'); %= 1312; (* ScanParamsSize = 96 (ElProScan Extension) *)
-s.SeriesRecSize			= 1408;%										= 1408;     (* = 176 * 8 *)
+
+switch obj.fileData.fileVersion
+	case 9
+		s.SeriesRecSize			= 1408;%										= 1408;     (* = 176 * 8 *)
+	case 1000
+		for k=1:8 % = 1408; (* ARRAY[0..7] OF UserParamDescrType = 8*40 *)
+			s.SeSeUserDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SeSeUserDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');
+		end
+		s.SeriesRecSize			= 1728;%      = 1728;
+end
+
+
+s=orderfields(s);
+s.Sweeps = []; % used to store all the sweeps within the recording structure later on
+
+
 
 
 
@@ -191,10 +208,6 @@ s.SeriesRecSize			= 1408;%										= 1408;     (* = 176 * 8 *)
 % 	s.SeSeUserDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');
 % end
 % s.SeriesRecSize			= 1728;%      = 1728;
-
-s=orderfields(s);
-s.Sweeps = []; % used to store all the sweeps within the recording structure later on
-
 end
 
 %--------------------------------------------------------------------------
