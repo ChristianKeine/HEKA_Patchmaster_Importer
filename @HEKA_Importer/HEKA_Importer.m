@@ -134,7 +134,6 @@ classdef HEKA_Importer < handle
 		readStimulusFileHEKA(obj,Level);
 		readAmplifierFileHEKA(obj,Level);
 		readSolutionFileHEKA(obj,Level);
-		
 	end
     
         %% Hide some of the handle class member functions for ease of use.
