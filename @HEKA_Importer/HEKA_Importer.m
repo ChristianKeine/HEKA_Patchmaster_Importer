@@ -71,11 +71,15 @@ classdef HEKA_Importer < handle
 % 								columns "ExternalSolution" and "InternalSolution" 
 % 								of the RecTable. 
 % 
-% See also	HEKA_Importer.HI_loadHEKAFile 
-% 			HEKA_Importer.HI_ImportHEKAtoMat 
-% 			HEKA_Importer.HI_extractHEKAStimTree
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile
 % 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
 % 			HEKA_Importer.HI_extractHEKADataTree
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
 
     properties (Access = public)
 
@@ -83,7 +87,6 @@ classdef HEKA_Importer < handle
         opt
         RecTable % contains recordings in table with various parameters, e.g. Rs, Cm, nSweeps ect. 
         solutions = []
-        fileData = [];
     end
     
     
@@ -130,10 +133,10 @@ classdef HEKA_Importer < handle
         HI_extractHEKASolutionTree(obj);
 		str = HI_time2date(obj,t);
 		
-		readPulseFileHEKA(obj,Level);
-		readStimulusFileHEKA(obj,Level);
-		readAmplifierFileHEKA(obj,Level);
-		readSolutionFileHEKA(obj,Level);
+		HI_readPulseFileHEKA(obj,Level);
+		HI_readStimulusFileHEKA(obj,Level);
+		HI_readAmplifierFileHEKA(obj,Level);
+		HI_readSolutionFileHEKA(obj,Level);
 	end
     
         %% Hide some of the handle class member functions for ease of use.

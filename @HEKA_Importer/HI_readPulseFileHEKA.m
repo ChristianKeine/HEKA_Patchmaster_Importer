@@ -1,13 +1,27 @@
-function readPulseFileHEKA(obj,Level)
+function HI_readPulseFileHEKA(obj,Level)
+
+% extracts data stored in the "*.pul" file, or the corresponding portion of
+% the bundled ".dat" file
+%
+% See also	HEKA_Importer
+% 			HEKA_Importer.HI_loadHEKAFile
+% 			HEKA_Importer.HI_extractHEKASolutionTree
+% 			HEKA_Importer.HI_extractHEKAStimTree
+% 			HEKA_Importer.HI_extractHEKADataTree
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
+
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
 s = getOneRecord(obj,Level);
-obj.fileData.Tree{obj.fileData.Counter, Level+1} = s;
+obj.opt.fileData.Tree{obj.opt.fileData.Counter, Level+1} = s;
 
-obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(Level+1);
-fseek(obj.fileData.fh, obj.fileData.Position, 'bof');
-obj.fileData.nchild=fread(obj.fileData.fh, 1, 'int32=>int32');
-obj.fileData.Position=ftell(obj.fileData.fh);
+obj.opt.fileData.Position = obj.opt.fileData.Position+obj.opt.fileData.Sizes(Level+1);
+fseek(obj.opt.fileData.fh, obj.opt.fileData.Position, 'bof');
+obj.opt.fileData.nchild=fread(obj.opt.fileData.fh, 1, 'int32=>int32');
+obj.opt.fileData.Position=ftell(obj.opt.fileData.fh);
 
 end
 
@@ -15,7 +29,7 @@ end
 function rec=getOneRecord(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record
-obj.fileData.Counter = obj.fileData.Counter+1;
+obj.opt.fileData.Counter = obj.opt.fileData.Counter+1;
 
 switch Level
 	case 0
@@ -39,7 +53,7 @@ end
 %--------------------------------------------------------------------------
 function p=getRoot(obj)
 %--------------------------------------------------------------------------
-fh = obj.fileData.fh;
+fh = obj.opt.fileData.fh;
 
 p.RoVersion				= fread(fh, 1, 'int32=>int32');%				=   4; (* INT32 *)
 p.RoMark				= fread(fh, 1, 'int32=>int32');%				=   4; (* INT32 *)
@@ -58,14 +72,14 @@ p.RoTcKind				= fread(fh,32,'int8=>int8');%					= 608; (* ARRAY[0..Max_TcKind_M1
 p.RootRecSize			= 640;%												   (* = 80 * 8 *);
 p=orderfields(p);
 
-obj.fileData.fileVersion = p.RoVersion; 
+obj.opt.fileData.fileVersion = p.RoVersion; 
 end
 
 %--------------------------------------------------------------------------
 function g=getGroup(obj)
 %--------------------------------------------------------------------------
 % Group
-fh = obj.fileData.fh;
+fh = obj.opt.fileData.fh;
 
 g.GrMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
 g.GrLabel				= deblank(fread(fh, 32, 'uint8=>char')');%      =   4; (* String32Size *)
@@ -84,14 +98,14 @@ end
 %--------------------------------------------------------------------------
 function s=getSeries(obj)
 %--------------------------------------------------------------------------
-fh = obj.fileData.fh;
+fh = obj.opt.fileData.fh;
 
 s.SeMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
 s.SeLabel				= deblank(fread(fh, 32, 'uint8=>char')');%      =   4; (* String32Type *)
 s.SeComment				= deblank(fread(fh, 80, 'uint8=>char')');%      =  36; (* String80Type *)
 s.SeSeriesCount			= fread(fh, 1, 'int32=>int32');%				= 116; (* INT32 *)
 s.SeNumbersw			= fread(fh, 1, 'int32=>int32');%				= 120; (* INT32 *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		s.SeAmplStateOffset		= fread(fh, 1, 'int32=>int32');%		= 124; (* INT32 *
 		s.SeAmplStateSeries		= fread(fh, 1, 'int32=>int32');%		= 128; (* INT32 *
@@ -103,7 +117,7 @@ s.SeMethodTag			= fread(fh,1,'int32=>int32'); %					= 132; (* INT32 *)
 s.SeTime				= fread(fh,1,'double=>double'); %				= 136; (* LONGREAL *)
 s.SeTimeMATLAB			= obj.HI_time2date(s.SeTime);
 s.SePageWidth			= fread(fh, 1, 'double=>double') ;%				= 144; (* LONGREAL *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		for k=1:4 %														= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
 			s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
@@ -117,7 +131,7 @@ switch obj.fileData.fileVersion
 		s.SeFiller1		=  deblank(fread(fh,80,'uint8=>char')'); %      = 232; (* ARRAY[0..1] OF UserParamDescrType = 2*40 *)
 end
 s.SeMethodName			= deblank(fread(fh,32,'uint8=>char')');%        = 312; (* String32Type *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		s.SeSeUserParams1		= fread(fh ,4 ,'double=>double');%		= 344; (* ARRAY[0..3] OF LONGREAL *)
 		s.SeLockInParams		= getSeLockInParams(fh);%				= 376; (* SeLockInSize = 96, see "Pulsed.de" *)
@@ -128,7 +142,7 @@ switch obj.fileData.fileVersion
 		s.SeOldAmpState			= getAmplifierState(fh);%				= 472; (* SeOldAmpState = 400 -> the AmplStateRecord is now stored in the .amp file *)
 end
 s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');%		= 872; (* String80Type *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		for k=1:4%														= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
 			s.SeSeUserParamDescr1(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
@@ -148,7 +162,7 @@ for k=1:4 %																= 1152; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *
 	s.SeSeUserParamDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 end
 s.SeScanParams			= fread(fh, 96, 'uint8=>uint8');%				= 1312; (* ScanParamsSize = 96 (ElProScan Extension) *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		s.SeriesRecSize			= 1408;%								= 1408;     (* = 176 * 8 *)
 	case 1000
@@ -168,7 +182,7 @@ end
 function sw=getSweep(obj)
 %--------------------------------------------------------------------------
 
-fh = obj.fileData.fh;
+fh = obj.opt.fileData.fh;
 
 sw.SwMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
 sw.SwLabel				= deblank(fread(fh, 32, 'uint8=>char')');%		=   4; (* String32Type *)
@@ -178,7 +192,7 @@ sw.SwSweepCount			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
 sw.SwTime				= fread(fh, 1, 'double=>double');%              =  48; (* LONGREAL *)
 sw.SwTimeMATLAB			= obj.HI_time2date(sw.SwTime);%					Also add in MATLAB datenum format
 sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
 	case 1000
@@ -198,7 +212,7 @@ sw.SwMarkers					= fread(fh, 4, 'double=>double');%		= 120; (* ARRAY[0..3] OF LO
 sw.SwFiller2					= fread(fh, 1, 'int32=>int32');%        = 152; (* INT32 *)
 sw.SwCRC						= fread(fh, 1, 'int32=>int32');%		= 156; (* CARD32 *)
 sw.SwSwHolding					= fread(fh,16,'double=>double');%		= 160; (* ARRAY[0..15] OF LONGREAL, see SwHoldingNo *)
-switch obj.fileData.fileVersion
+switch obj.opt.fileData.fileVersion
 	case 9
 		sw.SweepRecSize			= 288;%									= 288;      (* = 36 * 8 *)
 	case 1000
@@ -212,7 +226,7 @@ end
 %--------------------------------------------------------------------------
 function tr=getTrace(obj)
 %--------------------------------------------------------------------------
-fh = obj.fileData.fh;
+fh = obj.opt.fileData.fh;
 
 tr.TrMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
 tr.TrLabel				= deblank(fread(fh, 32, 'uint8=>char')');%      =   4; (* String32Type *)

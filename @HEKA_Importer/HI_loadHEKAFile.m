@@ -5,10 +5,14 @@ function HI_loadHEKAFile(obj)
 % for more information.
 %
 % See also	HEKA_Importer
-% 			HEKA_Importer.HI_ImportHEKAtoMat
+% 			HEKA_Importer.HI_loadHEKAFile
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
 % 			HEKA_Importer.HI_extractHEKADataTree
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
 
 % CHECK IF FILE EXISTS
 if ~exist(obj.opt.filepath,'file')

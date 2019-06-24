@@ -7,9 +7,13 @@ function HI_extractHEKADataTree(obj)
 %
 % See also	HEKA_Importer
 % 			HEKA_Importer.HI_loadHEKAFile
-% 			HEKA_Importer.HI_ImportHEKAtoMat
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
+% 			HEKA_Importer.HI_extractHEKADataTree
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
 
 %1: Root
 %2: Group/Experiment

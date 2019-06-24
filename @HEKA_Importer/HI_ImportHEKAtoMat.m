@@ -34,7 +34,10 @@ function obj=HI_ImportHEKAtoMat(obj)
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
 % 			HEKA_Importer.HI_extractHEKADataTree
-
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
 
 
 [pathname, filename, ext]=fileparts(obj.opt.filepath);
@@ -88,16 +91,22 @@ for iidx = fileExt
 		Position=ftell(fh);
 		
 		% Get the tree structures form the file sections
-		obj.fileData.fh = fh;
-		obj.fileData.Sizes = Sizes;
-		obj.fileData.Position = Position;
-		obj.fileData.fileExt = iidx{1};
+		obj.opt.fileData.fh = fh;
+		obj.opt.fileData.Sizes = Sizes;
+		obj.opt.fileData.Position = Position;
+		obj.opt.fileData.fileExt = iidx{1};
 		
 		obj.trees.(treeName{strcmp(iidx, fileExt)})=getTree(obj);
 		
 	else
 		obj.trees.(treeName{strcmp(iidx, fileExt)}) = [];
 	end
+end
+
+% clean-up remaining temporary data
+try
+	obj.opt.fileData = rmfield(obj.opt.fileData,{'Sizes','Position','fileExt','Counter','Tree','Level','nchild'});
+catch
 end
 
 %% GET DATA
@@ -194,9 +203,9 @@ function Tree=getTree(obj)
 %--------------------------------------------------------------------------
 % Main entry point for loading tree
 
-obj.fileData.Counter = 0;
-obj.fileData.Tree = {};
-obj.fileData.Level = 0;
+obj.opt.fileData.Counter = 0;
+obj.opt.fileData.Tree = {};
+obj.opt.fileData.Level = 0;
 
 Tree = getTreeReentrant(obj,0);
 end
@@ -206,23 +215,26 @@ function Tree=getTreeReentrant(obj,Level)
 %--------------------------------------------------------------------------
 % Recursive routine called from LoadTree
 
-switch obj.fileData.fileExt
+switch obj.opt.fileData.fileExt
 	case '.pul'
-		obj.readPulseFileHEKA(Level);
+		obj.HI_readPulseFileHEKA(Level);
 	case '.pgf'
-		obj.readStimulusFileHEKA(Level);
+		obj.HI_readStimulusFileHEKA(Level);
 	case '.sol'
-		obj.readSolutionFileHEKA(Level);
+		obj.HI_readSolutionFileHEKA(Level);
 	case '.amp'
-		obj.readAmplifierFileHEKA(Level);
+		obj.HI_readAmplifierFileHEKA(Level);
 
 end
 
-for k=1:double(obj.fileData.nchild)
+for k=1:double(obj.opt.fileData.nchild)
 	getTreeReentrant(obj,Level+1);
 end
 
-Tree = obj.fileData.Tree;
+Tree = obj.opt.fileData.Tree;
+
+
+
 
 end
 
