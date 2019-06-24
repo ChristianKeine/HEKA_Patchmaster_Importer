@@ -192,23 +192,36 @@ sw.SwTime				= fread(fh, 1, 'double=>double');%              =  48; (* LONGREAL 
 sw.SwTimeMATLAB			= obj.HI_time2date(sw.SwTime);%					Also add in MATLAB datenum format
 sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
 
+switch obj.fileDate.fileVersion
+	case 9
+		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
+	case 1000
+		sw.SwSwUserParams		= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
+		sw.SwPipPressure		= fread(fh, 2, 'double=>double');%		=  80; (* LONGREAL *
+		sw.SwRMSNoise			= fread(fh,2,'double=>double'); %       =  88; (* LONGREAL *)
+end
 
-sw.SwSwUserParams=fread(fh, 2, 'double=>double');%       =  64; (* ARRAY[0..1] OF LONGREAL *)
-sw.SwPipPressure=fread(fh, 2, 'double=>double');	 % =  80; (* LONGREAL *
-sw.SwRMSNoise=fread(fh,2,'double=>double'); %           =  88; (* LONGREAL *)
-sw.SwTemperature=fread(fh, 1, 'double=>double');%        =  96; (* LONGREAL *)
-sw.SwOldIntSol=fread(fh, 1, 'int32=>int32');%          = 104; (* INT32 *)
-sw.SwOldExtSol=fread(fh, 1, 'int32=>int32');%          = 108; (* INT32 *)
-sw.SwDigitalIn=fread(fh, 1, 'int16=>int16');%          = 112; (* SET16 *)
-sw.SwSweepKind=fread(fh, 1, 'int16=>int16');%          = 114; (* SET16 *)
-sw.SwDigitalOut=fread(fh,1, 'int16=>int16'); %      = 116; (* SET16 *)
-sw.SwFiller1=fread(fh, 1, 'int16=>int16');%         = 118; (* INT32 *)
-sw.SwMarkers=fread(fh, 4, 'double=>double');%            = 120; (* ARRAY[0..3] OF LONGREAL, see SwMarkersNo *)
-sw.SwFiller2=fread(fh, 1, 'int32=>int32');%         = 152; (* INT32 *)
-sw.SwCRC=fread(fh, 1, 'int32=>int32');%                = 156; (* CARD32 *)
-sw.SwSwHolding=fread(fh,16,'double=>double'); % = 160; (* ARRAY[0..15] OF LONGREAL, see SwHoldingNo *)
-sw.SwSwUserParamEx=fread(fh,8,'double=>double'); % = 288; (* ARRAY[0..7] OF LONGREAL *)
-sw.SweepRecSize         = 352;%  
+sw.SwSwUserParams				= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
+sw.SwTemperature				= fread(fh, 1, 'double=>double');%      =  96; (* LONGREAL *)
+sw.SwOldIntSol					= fread(fh, 1, 'int32=>int32');%        = 104; (* INT32 *)
+sw.SwOldExtSol					= fread(fh, 1, 'int32=>int32');%        = 108; (* INT32 *)
+sw.SwDigitalIn					= fread(fh, 1, 'int16=>int16');%        = 112; (* SET16 *)
+sw.SwSweepKind					= fread(fh, 1, 'int16=>int16');%        = 114; (* SET16 *)
+sw.SwDigitalOut					= fread(fh,1, 'int16=>int16');%			= 116; (* SET16 *)
+sw.SwFiller1					= fread(fh, 1, 'int16=>int16');%        = 118; (* INT32 *)
+sw.SwMarkers					= fread(fh, 4, 'double=>double');%		= 120; (* ARRAY[0..3] OF LONGREAL, see SwMarkersNo *)
+sw.SwFiller2					= fread(fh, 1, 'int32=>int32');%        = 152; (* INT32 *)
+sw.SwCRC						= fread(fh, 1, 'int32=>int32');%		= 156; (* CARD32 *)
+sw.SwSwHolding					= fread(fh,16,'double=>double');%		= 160; (* ARRAY[0..15] OF LONGREAL, see SwHoldingNo *)
+
+switch obj.fileData.fileVersion
+	case 9
+		sw.SweepRecSize			= 288;%									= 288;      (* = 36 * 8 *)
+	case 1000
+		sw.SwSwUserParamEx		= fread(fh,8,'double=>double'); %		= 288; (* ARRAY[0..7] OF LONGREAL *)
+		sw.SweepRecSize         = 352;%									= 352;
+end
+
 sw=orderfields(sw);
 sw.Traces = []; % used to store all the traces/channels within the sweep structure later on
 end
