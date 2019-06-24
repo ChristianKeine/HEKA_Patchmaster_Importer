@@ -208,7 +208,7 @@ function Tree=getTreeReentrant(obj,Level)
 
 switch obj.fileData.fileExt
 	case '.pul'
-		obj.readPulseFileHEKA(Level);
+		obj.import.readPulseFileHEKA(Level);
 	case '.pgf'
 		obj.readStimulusFileHEKA(Level);
 	case '.sol'
@@ -239,7 +239,7 @@ grp_row(end+1)=size(dataTree,1);
 
 % Collect the series headers and row numbers for this group into a
 % structure array
-[ser_s, ser_row, nseries]=getSeriesHeaders(dataTree, grp_row, grp);
+[ser_row, nseries]=getSeriesHeaders(dataTree, grp_row, grp);
 
 % Pad for last series
 ser_row(nseries+1)=grp_row(grp+1);
@@ -308,8 +308,7 @@ for ser=1:nseries
 				end
 			end
 		end
-		
-		
+
 		% Now scale the data to real world units
 		% Note we also apply zero adjustment
 		for col=1:size(data,2)
@@ -322,7 +321,6 @@ for ser=1:nseries
 	
 	
 end
-
 
 if numel(unique(dataoffsets))<numel(dataoffsets)
 	warning('ImportHEKA:warning', 'This should never happen - please report to sigtool@kcl.ac.uk if you see this warning.');
@@ -352,27 +350,27 @@ end
 return
 end
 
-%--------------------------------------------------------------------------
-function [res, intflag]=LocalGetRes(fmt)
-%--------------------------------------------------------------------------
-switch fmt
-	case {'int16' 'int32'}
-		res=double(intmax(fmt))+double(abs(intmin(fmt)))+1;
-		intflag=true;
-	case {'single' 'double'}
-		res=1;
-		intflag=false;
-end
-return
-end
+% %--------------------------------------------------------------------------
+% function [res, intflag]=LocalGetRes(fmt)
+% %--------------------------------------------------------------------------
+% switch fmt
+% 	case {'int16' 'int32'}
+% 		res=double(intmax(fmt))+double(abs(intmin(fmt)))+1;
+% 		intflag=true;
+% 	case {'single' 'double'}
+% 		res=1;
+% 		intflag=false;
+% end
+% return
+% end
 
 %--------------------------------------------------------------------------
-function [ser_s, ser_row, nseries]=getSeriesHeaders(tree, grp_row, grp)
+function [ser_row, nseries]=getSeriesHeaders(tree, grp_row, grp)
 %--------------------------------------------------------------------------
 nseries=0;
 for k=grp_row(grp)+1:grp_row(grp+1)-1
 	if ~isempty(tree{k, 3})
-		ser_s(nseries+1)=tree{k, 3}; %#ok<AGROW>
+% 		ser_s(nseries+1)=tree{k, 3}; %#ok<AGROW>
 		ser_row(nseries+1)=k; %#ok<AGROW>
 		nseries=nseries+1;
 	end
