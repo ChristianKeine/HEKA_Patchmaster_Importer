@@ -1,7 +1,7 @@
 function readSolutionFileHEKA(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-s = getOneSolutionRecord(obj);
+s = getOneSolutionRecord(obj,Level);
 obj.fileData.Tree{obj.fileData.Counter, Level+1} = s;
 
 obj.fileData.Position = obj.fileData.Position+obj.fileData.Sizes(Level+1);

@@ -208,7 +208,7 @@ function Tree=getTreeReentrant(obj,Level)
 
 switch obj.fileData.fileExt
 	case '.pul'
-		obj.import.readPulseFileHEKA(Level);
+		obj.readPulseFileHEKA(Level);
 	case '.pgf'
 		obj.readStimulusFileHEKA(Level);
 	case '.sol'
