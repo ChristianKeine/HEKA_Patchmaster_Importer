@@ -1,9 +1,6 @@
 function readPulseFileHEKA(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record of the tree and the number of children
-
-
-
 s = getOneRecord(obj,Level);
 obj.fileData.Tree{obj.fileData.Counter, Level+1} = s;
 
@@ -18,7 +15,6 @@ end
 function rec=getOneRecord(obj,Level)
 %--------------------------------------------------------------------------
 % Gets one record
-% Counter=Counter+1;
 obj.fileData.Counter = obj.fileData.Counter+1;
 
 switch Level
@@ -38,7 +34,7 @@ end
 end
 
 % The functions below return data as defined by the HEKA PatchMaster
-% specification
+% specification found at ftp://server.hekahome.de/pub/FileFormat/
 
 %--------------------------------------------------------------------------
 function p=getRoot(obj)
@@ -103,13 +99,10 @@ switch obj.fileData.fileVersion
 		s.SeAmplStateFlag		= fread(fh,1,'int32=>int32');%			= 124; (* INT32 *) // flag > 0 => load local oldAmpState, otherwise load from .amp File.
 		s.SeAmplStateRef		= fread(fh,1,'int32=>int32'); %			= 128; (* INT32 *) // ref  = 0 => use local oldAmpState
 end
-
-%%
 s.SeMethodTag			= fread(fh,1,'int32=>int32'); %					= 132; (* INT32 *)
 s.SeTime				= fread(fh,1,'double=>double'); %				= 136; (* LONGREAL *)
 s.SeTimeMATLAB			= obj.HI_time2date(s.SeTime);
 s.SePageWidth			= fread(fh, 1, 'double=>double') ;%				= 144; (* LONGREAL *)
-
 switch obj.fileData.fileVersion
 	case 9
 		for k=1:4 %														= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
@@ -123,9 +116,7 @@ switch obj.fileData.fileVersion
 		end
 		s.SeFiller1		=  deblank(fread(fh,80,'uint8=>char')'); %      = 232; (* ARRAY[0..1] OF UserParamDescrType = 2*40 *)
 end
-
 s.SeMethodName			= deblank(fread(fh,32,'uint8=>char')');%        = 312; (* String32Type *)
-
 switch obj.fileData.fileVersion
 	case 9
 		s.SeSeUserParams1		= fread(fh ,4 ,'double=>double');%		= 344; (* ARRAY[0..3] OF LONGREAL *)
@@ -136,7 +127,6 @@ switch obj.fileData.fileVersion
 		s.SeOldLockInParams		= getSeLockInParams(fh);%				= 376; (* SeOldLockInSize = 96, see "Pulsed.de" *)
 		s.SeOldAmpState			= getAmplifierState(fh);%				= 472; (* SeOldAmpState = 400 -> the AmplStateRecord is now stored in the .amp file *)
 end
-
 s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');%		= 872; (* String80Type *)
 switch obj.fileData.fileVersion
 	case 9
@@ -150,7 +140,6 @@ switch obj.fileData.fileVersion
 			s.SePhotoParams2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 		end
 end
-
 s.SeFiller1				= fread(fh, 1, 'int32=>int32');%				= 1112; (* INT32 *)
 s.SeCRC					=  fread(fh, 1, 'int32=>int32');%               = 1116; (* CARD32 *)
 s.SeSeUserParams2		= fread(fh, 4, 'double=>double');%				= 1120; (* ARRAY[0..3] OF LONGREAL *)
@@ -158,9 +147,7 @@ for k=1:4 %																= 1152; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *
 	s.SeSeUserParamDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 	s.SeSeUserParamDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 end
-
 s.SeScanParams			= fread(fh, 96, 'uint8=>uint8');%				= 1312; (* ScanParamsSize = 96 (ElProScan Extension) *)
-
 switch obj.fileData.fileVersion
 	case 9
 		s.SeriesRecSize			= 1408;%								= 1408;     (* = 176 * 8 *)
@@ -191,7 +178,6 @@ sw.SwSweepCount			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
 sw.SwTime				= fread(fh, 1, 'double=>double');%              =  48; (* LONGREAL *)
 sw.SwTimeMATLAB			= obj.HI_time2date(sw.SwTime);%					Also add in MATLAB datenum format
 sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
-
 switch obj.fileDate.fileVersion
 	case 9
 		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
@@ -200,7 +186,6 @@ switch obj.fileDate.fileVersion
 		sw.SwPipPressure		= fread(fh, 2, 'double=>double');%		=  80; (* LONGREAL *
 		sw.SwRMSNoise			= fread(fh,2,'double=>double'); %       =  88; (* LONGREAL *)
 end
-
 sw.SwSwUserParams				= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
 sw.SwTemperature				= fread(fh, 1, 'double=>double');%      =  96; (* LONGREAL *)
 sw.SwOldIntSol					= fread(fh, 1, 'int32=>int32');%        = 104; (* INT32 *)
@@ -213,7 +198,6 @@ sw.SwMarkers					= fread(fh, 4, 'double=>double');%		= 120; (* ARRAY[0..3] OF LO
 sw.SwFiller2					= fread(fh, 1, 'int32=>int32');%        = 152; (* INT32 *)
 sw.SwCRC						= fread(fh, 1, 'int32=>int32');%		= 156; (* CARD32 *)
 sw.SwSwHolding					= fread(fh,16,'double=>double');%		= 160; (* ARRAY[0..15] OF LONGREAL, see SwHoldingNo *)
-
 switch obj.fileData.fileVersion
 	case 9
 		sw.SweepRecSize			= 288;%									= 288;      (* = 36 * 8 *)
@@ -221,7 +205,6 @@ switch obj.fileData.fileVersion
 		sw.SwSwUserParamEx		= fread(fh,8,'double=>double'); %		= 288; (* ARRAY[0..7] OF LONGREAL *)
 		sw.SweepRecSize         = 352;%									= 352;
 end
-
 sw=orderfields(sw);
 sw.Traces = []; % used to store all the traces/channels within the sweep structure later on
 end
