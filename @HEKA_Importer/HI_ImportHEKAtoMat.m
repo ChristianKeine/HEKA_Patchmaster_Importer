@@ -162,7 +162,7 @@ switch h.oSignature
 		isBundled=false;
 	case {'DAT1' 'DAT2'}
 		% Newer format
-		h.oVersion			= fread(fh, 32, 'uint8=>char')';
+		h.oVersion			= fread(fh, 32,'uint8=>char')';
 		h.oTime				= fread(fh, 1, 'double');
 		h.oItems			= fread(fh, 1, 'int32=>int32');
 		h.oIsLittleEndian	= fread(fh, 1, 'uint8=>logical');

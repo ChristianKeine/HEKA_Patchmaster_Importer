@@ -95,30 +95,60 @@ s.SeLabel				= deblank(fread(fh, 32, 'uint8=>char')');%      =   4; (* String32T
 s.SeComment				= deblank(fread(fh, 80, 'uint8=>char')');%      =  36; (* String80Type *)
 s.SeSeriesCount			= fread(fh, 1, 'int32=>int32');%				= 116; (* INT32 *)
 s.SeNumbersw			= fread(fh, 1, 'int32=>int32');%				= 120; (* INT32 *)
-s.SeAmplStateOffset		= fread(fh, 1, 'int32=>int32');%				= 124; (* INT32 *
-s.SeAmplStateSeries		= fread(fh, 1, 'int32=>int32');%				= 128; (* INT32 *
+switch obj.fileData.fileVersion
+	case 9
+		s.SeAmplStateOffset		= fread(fh, 1, 'int32=>int32');%				= 124; (* INT32 *
+		s.SeAmplStateSeries		= fread(fh, 1, 'int32=>int32');%				= 128; (* INT32 *
+	case 1000
+		s.SeAmplStateFlag		= fread(fh,1,'int32=>int32');%					= 124; (* INT32 *) // flag > 0 => load local oldAmpState, otherwise load from .amp File.
+		s.SeAmplStateRef		= fread(fh,1,'int32=>int32'); %					= 128; (* INT32 *) // ref  = 0 => use local oldAmpState
+end
+
 %%
-% s.SeAmplStateFlag		= fread(fh,1,'int32=>int32');%					= 124; (* INT32 *) // flag > 0 => load local oldAmpState, otherwise load from .amp File.
-% s.SeAmplStateRef		= fread(fh,1,'int32=>int32'); %					= 128; (* INT32 *) // ref  = 0 => use local oldAmpState
 s.SeMethodTag			= fread(fh,1,'int32=>int32'); %					= 132; (* INT32 *)
 s.SeTime				= fread(fh,1,'double=>double'); %				= 136; (* LONGREAL *)
 s.SeTimeMATLAB			= obj.HI_time2date(s.SeTime);
 s.SePageWidth			= fread(fh, 1, 'double=>double') ;%				= 144; (* LONGREAL *)
-for k=1:4 %																= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
-	s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
-	s.SeSwUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
-end
-% s.SeFiller1				=  deblank(fread(fh,80,'uint8=>char')'); %      = 232; (* ARRAY[0..1] OF UserParamDescrType = 2*40 *)
-s.SeMethodName			= deblank(fread(fh,32,'uint8=>char')');%        = 312; (* String32Type *)
-s.SeSeUserParams1		= fread(fh ,4 ,'double=>double');%  = 344; (* ARRAY[0..3] OF LONGREAL *)
 
-s.SeLockInParams		= getSeLockInParams(fh);%						= 376; (* SeLockInSize = 96, see "Pulsed.de" *)
-s.SeAmplifierState		= getAmplifierState(fh);%						= 472; (* AmplifierStateSize = 400 *)
-s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');%		= 872; (* String80Type *)
-for k=1:4%																= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-	s.SeSeUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');% = 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
-	s.SeSeUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+switch obj.fileData.fileVersion
+	case 9
+		for k=1:4 %																= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
+			s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SeSwUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+		end
+	case 1000
+		for k=1:2 %																= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
+			s.SeUserDescr1(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SeUserDescr1(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+		end
+		s.SeFiller1				=  deblank(fread(fh,80,'uint8=>char')'); %      = 232; (* ARRAY[0..1] OF UserParamDescrType = 2*40 *)
 end
+
+s.SeMethodName			= deblank(fread(fh,32,'uint8=>char')');%        = 312; (* String32Type *)
+
+switch obj.fileData.fileVersion
+	case 9
+		s.SeSeUserParams1		= fread(fh ,4 ,'double=>double');			%  = 344; (* ARRAY[0..3] OF LONGREAL *)
+		s.SeLockInParams		= getSeLockInParams(fh);%						= 376; (* SeLockInSize = 96, see "Pulsed.de" *)
+		s.SeAmplifierState		= getAmplifierState(fh);%						= 472; (* AmplifierStateSize = 400 *)
+	case 1000
+		s.SePhotoParams1		= fread(fh, 4, 'double=>double'); %				= 344; (* ARRAY[0..3] OF LONGREAL = 4*8 *)
+		s.SeOldLockInParams		= getSeLockInParams(fh);%						= 376; (* SeLockInSize = 96, see "Pulsed.de" *)
+		s.SeOldAmpState			= getAmplifierState(fh);%						= 472; (* AmplifierStateSize = 400 *)
+end
+
+s.SeUsername			= deblank(fread(fh, 80, 'uint8=>char')');%		= 872; (* String80Type *)
+switch obj.fileData.fileVersion
+	case 9
+		for k=1:4%																= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
+			s.SeSeUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
+			s.SeSeUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
+		end
+	case 1000
+		
+end
+
+
 
 s.SeFiller1				= fread(fh, 1, 'int32=>int32');%         = 1112; (* INT32 *)
 s.SeCRC					=  fread(fh, 1, 'int32=>int32');%                = 1116; (* CARD32 *)
