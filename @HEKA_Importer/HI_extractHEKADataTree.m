@@ -24,8 +24,6 @@ if ~isempty(which('datetime')) && ~isempty(which('NaT'))
 else
 	hasDateTime = false;
 end
- 	
-
 
 dataTree = obj.trees.dataTree;
 
@@ -131,7 +129,7 @@ for iR=1:nRecs
 	
 	nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
 	nChannels = numel(ChUnit{iR,:});
-
+	
 	Rs{iR} = cell(1,nChannels);
 	Rs_uncomp{iR} = cell(1,nChannels);
 	RsFractionComp{iR} = cell(1,nChannels);
@@ -144,44 +142,26 @@ for iR=1:nRecs
 		TimeStamp{iR} = cell(1,nChannels);
 	end
 	
-% added export for each sweep and channel	
-
-% testing:
-
-
-for iCh = 1:nChannels
-	for iS = 1:nSweeps(iR)
-		Rs_uncomp{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
-		Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
-		Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
-		Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
-		
-		if iCh == 1
-			if hasDateTime
-			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
-		else
-			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
-		end
+	
+	for iCh = 1:nChannels
+		for iS = 1:nSweeps(iR)
+			Rs_uncomp{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
+			Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
+			Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
+			Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
 			
+			if iCh == 1
+				if hasDateTime
+					TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+				else
+					TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+				end
+				
+			end
 		end
+		RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
 	end
-	RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
-end
-
-
-% for iS=1:nSweeps(iR) % replaced from Recs(iR).SeNumbersw due to occasional mismatch
-% 		Rs_uncomp{iR}{1:nChannels} = 1./[Recs(iR).Sweeps(iS).Traces(:).TrGSeries];
-% 		Rs{iR}{1,iS} = Rs_uncomp{iR}{1,iS} - [Recs(iR).Sweeps(iS).Traces(:).TrRsValue];
-% 		Cm{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrCSlow];
-% 		Vhold{iR}{1,iS} = [Recs(iR).Sweeps(iS).Traces(:).TrTrHolding];
-% 		RsFractionComp{iR}{1,iS} = 1-Rs{iR}{1,iS}./Rs_uncomp{iR}{1,iS};
-% 
-% 		if hasDateTime
-% 			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
-% 		else
-% 			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
-% 		end
-% 	end
+	
 end
 
 
