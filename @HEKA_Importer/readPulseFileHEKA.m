@@ -178,7 +178,7 @@ sw.SwSweepCount			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
 sw.SwTime				= fread(fh, 1, 'double=>double');%              =  48; (* LONGREAL *)
 sw.SwTimeMATLAB			= obj.HI_time2date(sw.SwTime);%					Also add in MATLAB datenum format
 sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL *)
-switch obj.fileDate.fileVersion
+switch obj.fileData.fileVersion
 	case 9
 		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
 	case 1000
