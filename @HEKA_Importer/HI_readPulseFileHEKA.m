@@ -197,10 +197,9 @@ switch obj.opt.fileData.fileVersion
 		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
 	case 1000
 		sw.SwSwUserParams		= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
-		sw.SwPipPressure		= fread(fh, 2, 'double=>double');%		=  80; (* LONGREAL *
-		sw.SwRMSNoise			= fread(fh,2,'double=>double'); %       =  88; (* LONGREAL *)
+		sw.SwPipPressure		= fread(fh, 1, 'double=>double');%		=  80; (* LONGREAL *
+		sw.SwRMSNoise			= fread(fh,1,'double=>double'); %       =  88; (* LONGREAL *)
 end
-sw.SwSwUserParams				= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
 sw.SwTemperature				= fread(fh, 1, 'double=>double');%      =  96; (* LONGREAL *)
 sw.SwOldIntSol					= fread(fh, 1, 'int32=>int32');%        = 104; (* INT32 *)
 sw.SwOldExtSol					= fread(fh, 1, 'int32=>int32');%        = 108; (* INT32 *)
