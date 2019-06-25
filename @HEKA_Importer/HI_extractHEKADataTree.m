@@ -149,7 +149,7 @@ for iR=1:nRecs
 	
 	for iCh = 1:nChannels
 		for iS = 1:nSweeps(iR)
-			Rs_uncomp{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
+			Rs_uncomp{iR}{1,iCh}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
 			Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
 			Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
 			Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
