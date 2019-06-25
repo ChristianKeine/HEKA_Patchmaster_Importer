@@ -194,6 +194,7 @@
    chHasChirp           = 217; (* BOOLEAN *)
    chSquare_Kind        = 218; (* BYTE *)
       chFiller1         = 219; (* ARRAY[0..5] OF CHAR *)
+
    chSquare_BaseIncr    = 224; (* LONGREAL *)
    chSquare_Cycle       = 232; (* LONGREAL *)
    chSquare_PosAmpl     = 240; (* LONGREAL *)
