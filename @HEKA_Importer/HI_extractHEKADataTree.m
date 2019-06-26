@@ -60,7 +60,7 @@ function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum,hasDateTi
 recIDs = find(~cellfun(@isempty,dataTree(:,3)));
 recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
 
-sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;size(dataTree,1)];
+sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;nextExpID-1];
 
 for iR = 1:numel(recIDs)
 	% GET RECORDING INFORMATION

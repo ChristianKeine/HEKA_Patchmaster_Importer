@@ -21,6 +21,9 @@ obj.opt.fileData.Tree{obj.opt.fileData.Counter, Level+1} = s;
 obj.opt.fileData.Position = obj.opt.fileData.Position+obj.opt.fileData.Sizes(Level+1);
 fseek(obj.opt.fileData.fh, obj.opt.fileData.Position, 'bof');
 obj.opt.fileData.nchild=fread(obj.opt.fileData.fh, 1, 'int32=>int32');
+if obj.opt.fileData.nchild >10
+	
+end
 obj.opt.fileData.Position=ftell(obj.opt.fileData.fh);
 
 end
