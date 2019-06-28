@@ -7,9 +7,13 @@ function HI_extractHEKADataTree(obj)
 %
 % See also	HEKA_Importer
 % 			HEKA_Importer.HI_loadHEKAFile
-% 			HEKA_Importer.HI_ImportHEKAtoMat
 % 			HEKA_Importer.HI_extractHEKASolutionTree
 % 			HEKA_Importer.HI_extractHEKAStimTree
+% 			HEKA_Importer.HI_extractHEKADataTree
+%			HEKA_Importer.HI_readPulseFileHEKA
+%			HEKA_Importer.HI_readStimulusFileHEKA
+%			HEKA_Importer.HI_readAmplifierFileHEKA
+%			HEKA_Importer.HI_readSolutionFileHEKA
 
 %1: Root
 %2: Group/Experiment
@@ -18,14 +22,11 @@ function HI_extractHEKADataTree(obj)
 %5: Trace/Channel
 
 %check if datetime functions exist
-
 if ~isempty(which('datetime')) && ~isempty(which('NaT'))
 	hasDateTime = true;
 else
 	hasDateTime = false;
 end
- 	
-
 
 dataTree = obj.trees.dataTree;
 
@@ -58,7 +59,7 @@ function RecTab = ImportRecordings(dataTree,thisExpID,nextExpID,ExpNum,hasDateTi
 recIDs = find(~cellfun(@isempty,dataTree(:,3)));
 recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
 
-sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;size(dataTree,1)];
+sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;nextExpID-1];
 
 for iR = 1:numel(recIDs)
 	% GET RECORDING INFORMATION
@@ -77,11 +78,10 @@ RecNum = reshape(1:nRecs,nRecs,1);
 %EXTRACT INFORMATION FROM LEVEL 3
 Stimulus = reshape({Recs(:).SeLabel},numel(Recs),1);
 Comment = reshape({Recs(:).SeComment},numel(Recs),1);
-nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
+% nSweeps = reshape([Recs(:).SeNumbersw],numel(Recs),1);
 
 %EXTRACT INFORMATION FROM AMPLIFIER STATE, LEVEL 3
-AmpState = [Recs(:).SeAmplifierState];
-Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
+% AmpState = [Recs(:).SeAmplifierState];
 
 % THIS ONLY READS OUT THE Rs/Cm VALUES FOR FIRST SWEEP
 % RsFractionComp = reshape([AmpState(:).E9RsFraction],numel(AmpState),1);
@@ -92,6 +92,8 @@ Vhold = reshape([AmpState(:).E9VHold],numel(AmpState),1);
 % ASSUME TEMPERATURE AND SOLUTIONS ARE IDENTICAL BETWEEN SWEEPS AND LOAD
 % FIRST SWEEP ONLY OF EACH RECORDING
 Temperature = NaN(nRecs,1);
+nSweeps = NaN(nRecs,1);
+
 TimeUnit = cell(nRecs,1);
 ChUnit = cell(nRecs,1);
 ChName = cell(nRecs,1);
@@ -105,6 +107,7 @@ Rs = cell(nRecs,1);
 Rs_uncomp = cell(nRecs,1);
 RsFractionComp = cell(nRecs,1);
 Cm = cell(nRecs,1);
+Vhold = cell(nRecs,1);
 TimeStamp = cell(nRecs,1);
 
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
@@ -127,28 +130,41 @@ for iR=1:nRecs
 	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
 	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
 	
-	Rs{iR} = NaN(1,Recs(iR).SeNumbersw);
-	Rs_uncomp{iR} = NaN(1,Recs(iR).SeNumbersw);
-	RsFractionComp{iR} = NaN(1,Recs(iR).SeNumbersw);
-	Cm{iR} = NaN(1,Recs(iR).SeNumbersw);
+	nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
+	nChannels = numel(ChUnit{iR,:});
+	
+	Rs{iR} = cell(1,nChannels);
+	Rs_uncomp{iR} = cell(1,nChannels);
+	RsFractionComp{iR} = cell(1,nChannels);
+	Cm{iR} = cell(1,nChannels);
+	Vhold{iR} = cell(1,nChannels);
+	
 	if hasDateTime
-		TimeStamp{iR} = NaT(1,Recs(iR).SeNumbersw);
+		TimeStamp{iR} = NaT(1,nChannels);
 	else
-		TimeStamp{iR} = cell(1,Recs(iR).SeNumbersw);
+		TimeStamp{iR} = cell(1,nChannels);
 	end
 	
 	
-	for iS=1:Recs(iR).SeNumbersw
-		Rs_uncomp{iR}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(1).TrGSeries;
-		Rs{iR}(1,iS) = Rs_uncomp{iR}(iS) - Recs(iR).Sweeps(iS).Traces(1).TrRsValue;
-		Cm{iR}(1,iS) = Recs(iR).Sweeps(iS).Traces(1).TrCSlow;
-		if hasDateTime
-			TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
-		else
-			TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+	for iCh = 1:nChannels
+		for iS = 1:nSweeps(iR)
+			Rs_uncomp{iR}{1,iCh}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
+			Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
+			Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
+			Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
+			
+			if iCh == 1
+				if hasDateTime
+					TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+				else
+					TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+				end
+				
+			end
 		end
+		RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
 	end
-	RsFractionComp{iR} = 1-Rs{iR}./Rs_uncomp{iR};
+	
 end
 
 
