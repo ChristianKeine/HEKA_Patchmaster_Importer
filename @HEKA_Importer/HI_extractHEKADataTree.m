@@ -22,7 +22,6 @@ function HI_extractHEKADataTree(obj)
 %5: Trace/Channel
 
 %check if datetime functions exist
-
 if ~isempty(which('datetime')) && ~isempty(which('NaT'))
 	hasDateTime = true;
 else
