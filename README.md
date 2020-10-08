@@ -1,5 +1,7 @@
 # HEKA Patchmaster Importer
 
+[![View HEKA Patchmaster Importer on File Exchange](https://www.mathworks.com/matlabcentral/images/matlab-file-exchange.svg)](https://de.mathworks.com/matlabcentral/fileexchange/70164-heka-patchmaster-importer)
+
 Class to import HEKA Patchmaster files into Matlab.
 The core functionality is based on the HEKA importer from sigTool ([Publication](https://doi.org/10.1016/j.neuron.2015.10.042) and [GitHub Repository](https://github.com/irondukepublishing/sigTOOL)) with modifications from Sammy Katta ([GitHub Repository](https://github.com/sammykatta/Matlab-PatchMaster)). 
 
