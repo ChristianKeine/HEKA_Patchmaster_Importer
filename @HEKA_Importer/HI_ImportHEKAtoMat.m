@@ -324,7 +324,7 @@ for ser=1:nseries
 		% Now scale the data to real world units
 		% Note we also apply zero adjustment
 		for col=1:size(data,2)
-			data(:,col)=data(:,col)*tr_s(col).TrDataScaler+tr_s(col).TrZeroData;
+			data(:,col)=data(:,col)*tr_s(col).TrDataScaler-tr_s(col).TrZeroData; %double check with Patchmaster files
 		end
 		
 		matData2{ser,:}{k} = data;
