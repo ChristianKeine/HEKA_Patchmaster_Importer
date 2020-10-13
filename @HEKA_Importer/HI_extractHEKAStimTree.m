@@ -115,9 +115,7 @@ for iC = 1:numel(ch)
 	% GET DURATION AND AMPLITUDE OF SEGMENTS
 	segT = reshape([segs(:).seDuration],numel(segs),1);
 	segV = reshape([segs(:).seVoltage],numel(segs),1);
-	
-    segVoltageIncMode = reshape([segs(:).seVoltageIncMode],numel(segs),1);
-    segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
+
     % GET INCREMENT MODES
 %     
 %     0: Increase
@@ -126,14 +124,29 @@ for iC = 1:numel(ch)
 %     3: Interleave-
 %     4: Alternate
 %     5: Toggle
-
+%     6: V*factor
+%     7: dV*factor
+	
+    segVoltageIncMode = reshape([segs(:).seVoltageIncMode],numel(segs),1);
+    segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
     
-	% GET CHANGES DURING SWEEPS
-	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) BUT NEED TEMPLATE
-	% FIRST
+    
+
+       
+   	% GET CHANGES DURING SWEEPS
+	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) 
 	segDeltaT = reshape([segs(:).seDeltaTIncrement],numel(segs),1) .* reshape([segs(:).seDeltaTFactor],numel(segs),1);
 	segDeltaV = reshape([segs(:).seDeltaVIncrement],numel(segs),1) .* reshape([segs(:).seDeltaVFactor],numel(segs),1);
 	
+    if any(segVoltageIncMode == 4)% alternate
+        % get all voltage values
+        
+        allV = segV+segDeltaV*nSweeps;
+        
+        
+    else
+        
+    
 	constantSegs = ~any([segDeltaT(:);segDeltaV(:)]);
 	
 	% DUPLICATE BASE SEGMENTS FOR MULTIPLE SWEETS
@@ -147,7 +160,7 @@ for iC = 1:numel(ch)
 	segV = segV + cumsum(segDeltaV,2);
 	segTime = round(segT .* SR);
 	
-	
+    end
 	% CREATE STIMULUS FOR EACH SWEEP UNLESS SWEEP PARAMETERS ARE CONSTANT
 	
 	% DEFINE MATRIX FOR STIMULI

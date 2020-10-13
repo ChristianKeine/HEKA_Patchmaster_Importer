@@ -71,7 +71,7 @@ for iR = 1:numel(chIDs)
 end
 
 
-nSweeps = stimTree{thisRecID,2}.stNumberSweeps;
+nSweeps = double(stimTree{thisRecID,2}.stNumberSweeps);
 
 % GET SAMPLING RATE
 SR = 1./stimTree{thisRecID,2}.stSampleInterval;
@@ -131,12 +131,22 @@ for iC = 1:numel(ch)
     segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
     
     
-	% GET CHANGES DURING SWEEPS
-	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) BUT NEED TEMPLATE
-	% FIRST
+
+       
+   	% GET CHANGES DURING SWEEPS
+	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) 
 	segDeltaT = reshape([segs(:).seDeltaTIncrement],numel(segs),1) .* reshape([segs(:).seDeltaTFactor],numel(segs),1);
 	segDeltaV = reshape([segs(:).seDeltaVIncrement],numel(segs),1) .* reshape([segs(:).seDeltaVFactor],numel(segs),1);
 	
+    if any(segVoltageIncMode == 4)% alternate
+        % get all voltage values
+        
+        allV = segV + segDeltaV .* nSweeps;
+        
+        
+    else
+        
+    
 	constantSegs = ~any([segDeltaT(:);segDeltaV(:)]);
 	
 	% DUPLICATE BASE SEGMENTS FOR MULTIPLE SWEETS
@@ -150,7 +160,7 @@ for iC = 1:numel(ch)
 	segV = segV + cumsum(segDeltaV,2);
 	segTime = round(segT .* SR);
 	
-	
+    end
 	% CREATE STIMULUS FOR EACH SWEEP UNLESS SWEEP PARAMETERS ARE CONSTANT
 	
 	% DEFINE MATRIX FOR STIMULI
