@@ -195,6 +195,7 @@ c.chCRC					= fread(fh, 1, 'int32=>int32');%                = 396; (* CARD32 *)
 c.ChannelRecSize        = 400;%											(* = 50 * 8 *)
 c=orderfields(c);
 
+c.segments = []; % used to store all the segments within the channel structure later on
 end
 
 %--------------------------------------------------------------------------

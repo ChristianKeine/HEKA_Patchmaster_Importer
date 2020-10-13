@@ -115,9 +115,7 @@ for iC = 1:numel(ch)
 	% GET DURATION AND AMPLITUDE OF SEGMENTS
 	segT = reshape([segs(:).seDuration],numel(segs),1);
 	segV = reshape([segs(:).seVoltage],numel(segs),1);
-	
-    segVoltageIncMode = reshape([segs(:).seVoltageIncMode],numel(segs),1);
-    segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
+
     % GET INCREMENT MODES
 %     
 %     0: Increase
@@ -126,7 +124,12 @@ for iC = 1:numel(ch)
 %     3: Interleave-
 %     4: Alternate
 %     5: Toggle
-
+%     6: V*factor
+%     7: dV*factor
+	
+    segVoltageIncMode = reshape([segs(:).seVoltageIncMode],numel(segs),1);
+    segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
+    
     
 	% GET CHANGES DURING SWEEPS
 	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) BUT NEED TEMPLATE
