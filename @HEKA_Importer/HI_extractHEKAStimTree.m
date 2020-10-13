@@ -71,7 +71,7 @@ for iR = 1:numel(chIDs)
 end
 
 
-nSweeps = stimTree{thisRecID,2}.stNumberSweeps;
+nSweeps = double(stimTree{thisRecID,2}.stNumberSweeps);
 
 % GET SAMPLING RATE
 SR = 1./stimTree{thisRecID,2}.stSampleInterval;
@@ -131,8 +131,7 @@ for iC = 1:numel(ch)
     segDurIncMode = reshape([segs(:).seDurationIncMode],numel(segs),1);
     
     
-
-       
+      
    	% GET CHANGES DURING SWEEPS
 	% TO DO: IMPLEMENT DIFFERENT MODES (ALTERNATING ETC.) 
 	segDeltaT = reshape([segs(:).seDeltaTIncrement],numel(segs),1) .* reshape([segs(:).seDeltaTFactor],numel(segs),1);
@@ -140,10 +139,11 @@ for iC = 1:numel(ch)
 	
     if any(segVoltageIncMode == 4)% alternate
         % get all voltage values
-        
-        allV = segV+segDeltaV*nSweeps;
-        
-        
+        for iSeg = 1:numel(segs)
+            
+            allV(iSeg,:) = linspace(segV(iSeg),segV(iSeg)+(nSweeps-1)*segDeltaV(iSeg),nSweeps);
+            
+        end
     else
         
     
