@@ -137,17 +137,20 @@ for iC = 1:numel(ch)
 	segDeltaT = reshape([segs(:).seDeltaTIncrement],numel(segs),1) .* reshape([segs(:).seDeltaTFactor],numel(segs),1);
 	segDeltaV = reshape([segs(:).seDeltaVIncrement],numel(segs),1) .* reshape([segs(:).seDeltaVFactor],numel(segs),1);
 	
-    if any(segVoltageIncMode == 4)% alternate
-        % get all voltage values
-        for iSeg = 1:numel(segs)
-            
-            allV(iSeg,:) = linspace(segV(iSeg),segV(iSeg)+(nSweeps-1)*segDeltaV(iSeg),nSweeps);
-            
-        end
-    else
-        
+%     if any(segVoltageIncMode == 4)% alternate
+%         % get all voltage values
+%         for iSeg = 1:numel(segs)
+%             allV(iSeg,:) = linspace(segV(iSeg),segV(iSeg)+(nSweeps-1)*segDeltaV(iSeg),nSweeps);          
+%         end
+%           
+%         %alternate sweeps
+%         allV = 
+%         
+%         
+%     else
+%         
     
-	constantSegs = ~any([segDeltaT(:);segDeltaV(:)]);
+	allSegsConstant = ~any([segDeltaT(:);segDeltaV(:)]);
 	
 	% DUPLICATE BASE SEGMENTS FOR MULTIPLE SWEETS
 	segT = repmat(segT,1,nSweeps);
@@ -160,7 +163,39 @@ for iC = 1:numel(ch)
 	segV = segV + cumsum(segDeltaV,2);
 	segTime = round(segT .* SR);
 	
+    
+    %% alternate segments if required
+    if any([segVoltageIncMode;segDurIncMode] == 4)% alternate
+    % find aternating segments
+    altVoltSegID = segVoltageIncMode == 4;
+    altDurSegID = segDurIncMode == 4;
+    nSegments = numel(segs);
+    
+    for iSeg = 1:nSegments
+       % Voltage
+       isAlternatingV = altVoltSegID(iSeg);
+       isAlternatingD = altDurSegID(iSeg);
+       
+       if isAlternatingV
+          v1 = segV(iSeg,1:floor(size(segV,2)/2));
+          v2 = fliplr(segV(iSeg,floor(size(segV,2)/2)+1:end));
+          aV = cat(2,v1,v2);
+          aV([1:2:end,2:2:end]) = aV;
+          segV(iSeg,:) = aV;
+       end
+       % Duration
+       if isAlternatingD
+          v1 = segTime(iSeg,1:floor(size(segTime,2)/2));
+          v2 = fliplr(segTime(iSeg,floor(size(segTime,2)/2)+1:end));
+          aD = cat(2,v1,v2);
+          aD([1:2:end,2:2:end]) = aD;
+          segTime(iSeg,:) = aD;
+       end 
+    end    
     end
+        
+        
+    
 	% CREATE STIMULUS FOR EACH SWEEP UNLESS SWEEP PARAMETERS ARE CONSTANT
 	
 	% DEFINE MATRIX FOR STIMULI
@@ -172,7 +207,7 @@ for iC = 1:numel(ch)
 	stims = arrayfun(fun,segTime,segV,'UniformOutput',false);
 	
 	
-	if ~constantSegs
+	if ~allSegsConstant
 		% SORT STIMULUS IN MATRIX
 		for iS = 1:nSweeps
 			stimMatrix(1:sum(segTime(:,iS)),iS) = cell2mat(stims(:,iS));
@@ -181,8 +216,6 @@ for iC = 1:numel(ch)
 	else
 		stimMatrix = cell2mat(stims(:,1));
 	end
-	
-	
 	
 	STIM.(chName) = stimMatrix;
 	
