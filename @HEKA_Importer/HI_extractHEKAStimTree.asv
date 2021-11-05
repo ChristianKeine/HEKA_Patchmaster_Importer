@@ -173,33 +173,27 @@ for iC = 1:numel(ch)
     
     for iSeg = 1:nSegments
        % Voltage
-       isAlternating = altVoltSegID(iSeg);
+       isAlternatingV = altVoltSegID(iSeg);
+       isAlternatingD = altDurSegID(iSeg);
        
-       if isAlternating
+       if isAlternatingV
           v1 = segV(iSeg,1:floor(size(segV,2)/2));
           v2 = fliplr(segV(iSeg,floor(size(segV,2)/2)+1:end));
-          av = cat(2,v1,v2);
-          av = av([1:2:end,2:2:end])
+          aV = cat(2,v1,v2);
+          aV([1:2:end,2:2:end]) = aV;
+          segV(iSeg,:) = aV;
        end
        % Duration
-        
-        
+       if isAlternatingD
+          v1 = segTime(iSeg,1:floor(size(segTime,2)/2));
+          v2 = fliplr(segTime(iSeg,floor(size(segTime,2)/2)+1:end));
+          aD = cat(2,v1,v2);
+          aD([1:2:end,2:2:end]) = aD;
+          segTime(iSeg,:) = aD;
+       end 
+    end    
     end
-    
-    newSegV = NaN(size(segV));
-    newSegTime = NaN(size(segTime));
-    
-    PosV = []
-    
-    segVp1 = segV(:,1:2:end)
-    segVp2 = segV(:,2:2:end)
-    
-    
-        
-    end
-        
-        
-    
+           
 	% CREATE STIMULUS FOR EACH SWEEP UNLESS SWEEP PARAMETERS ARE CONSTANT
 	
 	% DEFINE MATRIX FOR STIMULI

@@ -193,9 +193,7 @@ for iC = 1:numel(ch)
        end 
     end    
     end
-        
-        
-    
+           
 	% CREATE STIMULUS FOR EACH SWEEP UNLESS SWEEP PARAMETERS ARE CONSTANT
 	
 	% DEFINE MATRIX FOR STIMULI
