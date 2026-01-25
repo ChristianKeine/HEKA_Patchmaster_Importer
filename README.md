@@ -32,3 +32,5 @@ Heka_Importer creates object containing the following properties:
 
 UPDATE: As of Patchmaster version 2x90.3 (including Patchmaster Next), HEKA made minor changes to how data is stored in the tree structures. The amplifier settings are now always stored in a separate ".amp" file (which is part of the DAT bundle file). In previous versions, such a separate file was created only for EPC/n amplifiers. 
 The HEKA_Import function has been updated accordingly and should work with older 2x90 versions and newer (>2x90.3/PMN) alike, but the amplifier settings might be stored differently. 
+
+UPDATE 01/2026: started to include compatibility to the newest file version (v2000) from Patchmaster Next 1.6 and newer. Not yet fully tested. 
