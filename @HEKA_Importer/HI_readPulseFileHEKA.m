@@ -112,10 +112,10 @@ switch obj.opt.fileData.fileVersion
 	case 9
 		s.SeAmplStateOffset		= fread(fh, 1, 'int32=>int32');%		= 124; (* INT32 *
 		s.SeAmplStateSeries		= fread(fh, 1, 'int32=>int32');%		= 128; (* INT32 *
-	case 1000
+	case {1000,2000}
 		s.SeAmplStateFlag		= fread(fh,1,'int32=>int32');%			= 124; (* INT32 *) // flag > 0 => load local oldAmpState, otherwise load from .amp File.
 		s.SeAmplStateRef		= fread(fh,1,'int32=>int32'); %			= 128; (* INT32 *) // ref  = 0 => use local oldAmpState
-end
+   end
 s.SeMethodTag			= fread(fh,1,'int32=>int32'); %					= 132; (* INT32 *)
 s.SeTime				= fread(fh,1,'double=>double'); %				= 136; (* LONGREAL *)
 s.SeTimeMATLAB			= obj.HI_time2date(s.SeTime);
@@ -126,7 +126,7 @@ switch obj.opt.fileData.fileVersion
 			s.SeSwUserParamDescr(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 			s.SeSwUserParamDescr(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 		end
-	case 1000
+	case {1000,2000}
 		for k=1:2 %														= 152; (* ARRAY[0..1] OF UserParamDescrType = 4*40 *)
 			s.SeUserDescr1(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 			s.SeUserDescr1(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
@@ -139,7 +139,7 @@ switch obj.opt.fileData.fileVersion
 		s.SeSeUserParams1		= fread(fh ,4 ,'double=>double');%		= 344; (* ARRAY[0..3] OF LONGREAL *)
 		s.SeLockInParams		= getSeLockInParams(fh);%				= 376; (* SeLockInSize = 96, see "Pulsed.de" *)
 		s.SeAmplifierState		= getAmplifierState(fh);%				= 472; (* AmplifierStateSize = 400 *)
-	case 1000
+	case {1000,2000}
 		s.SePhotoParams1		= fread(fh, 4, 'double=>double'); %		= 344; (* ARRAY[0..3] OF LONGREAL = 4*8 *)
 		s.SeOldLockInParams		= getSeLockInParams(fh);%				= 376; (* SeOldLockInSize = 96, see "Pulsed.de" *)
 		s.SeOldAmpState			= getAmplifierState(fh);%				= 472; (* SeOldAmpState = 400 -> the AmplStateRecord is now stored in the .amp file *)
@@ -151,7 +151,7 @@ switch obj.opt.fileData.fileVersion
 			s.SeSeUserParamDescr1(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 			s.SeSeUserParamDescr1(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
 		end
-	case 1000
+	case {1000,2000}
 		for k=1:4%														= 952; (* ARRAY[0..3] OF UserParamDescrType = 4*40 *)
 			s.SePhotoParams2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 			s.SePhotoParams2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');%
@@ -168,7 +168,7 @@ s.SeScanParams			= fread(fh, 96, 'uint8=>uint8');%				= 1312; (* ScanParamsSize 
 switch obj.opt.fileData.fileVersion
 	case 9
 		s.SeriesRecSize			= 1408;%								= 1408;     (* = 176 * 8 *)
-	case 1000
+	case {1000,2000}
 		for k=1:8 %														= 1408; (* ARRAY[0..7] OF UserParamDescrType = 8*40 *)
 			s.SeSeUserDescr2(k).Name=deblank(fread(fh, 32, 'uint8=>char')');%
 			s.SeSeUserDescr2(k).Unit=deblank(fread(fh, 8, 'uint8=>char')');
@@ -198,7 +198,7 @@ sw.SwTimer				= fread(fh, 1, 'double=>double');%              =  56; (* LONGREAL
 switch obj.opt.fileData.fileVersion
 	case 9
 		sw.SwSwUserParams		= fread(fh, 4, 'double=>double');%      =  64; (* ARRAY[0..3] OF LONGREAL *)
-	case 1000
+	case {1000,2000}
 		sw.SwSwUserParams		= fread(fh, 2, 'double=>double');%      =  64; (* ARRAY[0..1] OF LONGREAL *)
 		sw.SwPipPressure		= fread(fh, 1, 'double=>double');%		=  80; (* LONGREAL *
 		sw.SwRMSNoise			= fread(fh,1,'double=>double'); %       =  88; (* LONGREAL *)
@@ -217,7 +217,7 @@ sw.SwSwHolding					= fread(fh,16,'double=>double');%		= 160; (* ARRAY[0..15] OF 
 switch obj.opt.fileData.fileVersion
 	case 9
 		sw.SweepRecSize			= 288;%									= 288;      (* = 36 * 8 *)
-	case 1000
+	case {1000,2000}
 		sw.SwSwUserParamEx		= fread(fh,8,'double=>double'); %		= 288; (* ARRAY[0..7] OF LONGREAL *)
 		sw.SweepRecSize         = 352;%									= 352;
 end
@@ -232,9 +232,17 @@ fh = obj.opt.fileData.fh;
 
 tr.TrMark				= fread(fh, 1, 'int32=>int32');%				=   0; (* INT32 *)
 tr.TrLabel				= deblank(fread(fh, 32, 'uint8=>char')');%      =   4; (* String32Type *)
-tr.TrTraceCount			= fread(fh, 1, 'int32=>int32');%				=  36; (* INT32 *)
-tr.TrData				= fread(fh, 1, 'int32=>int32');%				=  40; (* INT32 *)
-tr.TrDataPoints			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
+tr.TrTraceCount			= fread(fh, 1, 'int32=>int32');
+%				=  36; (* INT32 *)
+switch obj.opt.fileData.fileVersion
+    case 2000
+        tr.TrData				= fread(fh, 1, 'int64=>int64');%				=  40; (* INT32 *)
+        tr.TrDataPoints			= fread(fh, 1, 'int64=>int64');%				=  44; (* INT32 *)
+    otherwise
+        tr.TrData				= fread(fh, 1, 'int32=>int32');%				=  40; (* INT32 *)
+        tr.TrDataPoints			= fread(fh, 1, 'int32=>int32');%				=  44; (* INT32 *)
+end
+
 tr.TrInternalSolution	= fread(fh, 1, 'int32=>int32');%				=  48; (* INT32 *)
 tr.TrAverageCount		= fread(fh, 1, 'int32=>int32');%				=  52; (* INT32 *)
 tr.TrLeakCount			= fread(fh, 1, 'int32=>int32');%				=  56; (* INT32 *)
@@ -280,9 +288,15 @@ tr.TrDataCRC			= fread(fh, 1, 'int32=>int32');%				= 272; (* CARD32 *)
 tr.TrCRC				= fread(fh, 1, 'int32=>int32');%                = 276; (* CARD32 *)
 tr.TrGS					= fread(fh, 1, 'double=>double');%              = 280; (* LONGREAL *)
 tr.TrSelfChannel		= fread(fh, 1, 'int32=>int32');%				= 288; (* INT32 *)
+switch obj.opt.fileData.fileVersion
+    case 2000
+tr.TrInterleaveSize		= fread(fh, 1, 'int64=>int64');%				= 292; (* INT32 *)
+tr.TrInterleaveSkip		= fread(fh, 1, 'int64=>int64');%				= 296; (* INT32 *)
 
+    otherwise
 tr.TrInterleaveSize		= fread(fh, 1, 'int32=>int32');%				= 292; (* INT32 *)
 tr.TrInterleaveSkip		= fread(fh, 1, 'int32=>int32');%				= 296; (* INT32 *)
+end
 tr.TrImageIndex			= fread(fh, 1, 'int32=>int32');%				= 300; (* INT32 *)
 tr.TrMarkers			= fread(fh, 10, 'double=>double');%				= 304; (* ARRAY[0..9] OF LONGREAL *)
 tr.TrSECM_X				= fread(fh, 1, 'double=>double');%				= 384; (* LONGREAL *)
@@ -297,7 +311,7 @@ tr.TrIntSolName			= deblank(fread(fh, 32, 'uint8=>char')');%      = 440; (* Stri
 tr.TrExtSolName			= deblank(fread(fh, 32, 'uint8=>char')');%      = 472; (* String32Size *)
 tr.TrDataPedestal		= fread(fh, 1, 'double=>double');%				= 504; (* LONGREAL *)
 
-tr.TraceRecSize=512;%														   (* = 64 * 8 *)
+tr.TraceRecSize=528;%														   (* = 64 * 8 *)
 
 tr=orderfields(tr);
 

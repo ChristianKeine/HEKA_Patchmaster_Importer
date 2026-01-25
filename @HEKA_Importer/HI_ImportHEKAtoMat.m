@@ -176,17 +176,31 @@ switch h.oSignature
 		h.oItems			= fread(fh, 1, 'int32=>int32');
 		h.oIsLittleEndian	= fread(fh, 1, 'uint8=>logical');
 		h.BundleHeaderSize	= 256;
+
+
+%determine if v2000
+isV2000 = contains(h.oVersion,'Build');
+
 		switch h.oSignature
 			case 'DAT1'
 				h.oBundleItems=[];
 				isBundled=false;
 			case {'DAT2'}
-				fseek(fh, 64, 'bof');
-				for k=1:12
-					h.oBundleItems(k).oStart		 = fread(fh, 1, 'int32=>int32');
-					h.oBundleItems(k).oLength		 = fread(fh, 1, 'int32=>int32');
-					h.oBundleItems(k).oExtension	 = deblank(fread(fh, 8, 'uint8=>char')');
+				fseek(fh, 64, 'bof'); 
+				for k=1:h.oItems
+
+                    if isV2000
+                    h.oBundleItems(k).oStart         = fread(fh, 1, 'int64=>int64');
+                    h.oBundleItems(k).oLength		 = fread(fh, 1, 'int64=>int64');
+                    else
+					h.oBundleItems(k).oStart         = fread(fh, 1, 'int32=>int32');
+                    h.oBundleItems(k).oLength		 = fread(fh, 1, 'int32=>int32');
+                     end
+
+		    		h.oBundleItems(k).oExtension	 = deblank(fread(fh, 8, 'uint8=>char')');
 					h.oBundleItems(k).BundleItemSize = 16;
+
+
 				end
 				isBundled=true;
 		end
