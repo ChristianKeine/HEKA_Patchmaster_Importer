@@ -23,9 +23,9 @@ function HI_extractHEKADataTree(obj)
 
 %check if datetime functions exist
 if ~isempty(which('datetime')) && ~isempty(which('NaT'))
-	hasDateTime = true;
+    hasDateTime = true;
 else
-	hasDateTime = false;
+    hasDateTime = false;
 end
 
 dataTree = obj.trees.dataTree;
@@ -36,12 +36,12 @@ nExperiments = numel(allExp);
 Rt = cell(nExperiments,1);
 
 for iExp = 1:nExperiments
-	if iExp == nExperiments
-		nextExp = size(dataTree,1)+1;
-	else
-		nextExp = allExp(iExp+1);
-	end
-	Rt{iExp} = ImportRecordings(dataTree,allExp(iExp),nextExp,iExp,hasDateTime);
+    if iExp == nExperiments
+        nextExp = size(dataTree,1)+1;
+    else
+        nextExp = allExp(iExp+1);
+    end
+    Rt{iExp} = ImportRecordings(dataTree,allExp(iExp),nextExp,iExp,hasDateTime);
 end
 
 obj.RecTable = [vertcat(Rt{:}),obj.RecTable];
@@ -62,10 +62,10 @@ recIDs = recIDs(recIDs>thisExpID & recIDs<nextExpID);
 sweepSt = recIDs+1; sweepEnd = [recIDs(2:end)-1;nextExpID-1];
 
 for iR = 1:numel(recIDs)
-	% GET RECORDING INFORMATION
-	Recs(iR) = dataTree{recIDs(iR),3};
-	%GET ASSOCIATED SWEEPS & TRACES
-	Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));
+    % GET RECORDING INFORMATION
+    Recs(iR) = dataTree{recIDs(iR),3};
+    %GET ASSOCIATED SWEEPS & TRACES
+    Recs(iR).Sweeps = ImportSweeps(dataTree(sweepSt(iR):sweepEnd(iR),4:5));
 end
 
 
@@ -113,102 +113,107 @@ TimeStamp = cell(nRecs,1);
 RecModeNames = {'inside-out V-clamp','on-cell V-clamp','outside-out V-clamp','Whole-cell V-clamp','C-clamp','V-clamp','NoMode'};
 
 for iR=1:nRecs
-	Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
-	
-	% NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
-	% RECORDING
-	TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
-	ChUnit{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrYUnit};
-	ChName{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrLabel};
-	SR(iR,:) = 1/(Recs(iR).Sweeps(1).Traces(1).TrXInterval);
-	
-	RecModeID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrRecordingMode];
-	RecordingMode{iR,:} = reshape(RecModeNames(RecModeID{iR}+1),1,numel(RecModeID{iR,:}));
-	
-	% SOLUTIONS SHOULD BE IDENTICAL FOR EACH CHANNEL, SO IMPORT FIRST
-	% CHANNEL ONLY
-	ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
-	InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
-	
-	nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
-	nChannels = numel(ChUnit{iR,:});
-	
-	Rs{iR} = cell(1,nChannels);
-	Rs_uncomp{iR} = cell(1,nChannels);
-	RsFractionComp{iR} = cell(1,nChannels);
-	Cm{iR} = cell(1,nChannels);
-	Vhold{iR} = cell(1,nChannels);
-	
-	if hasDateTime
-		TimeStamp{iR} = NaT(1,nChannels);
-	else
-		TimeStamp{iR} = cell(1,nChannels);
-	end
-	
-	
-	for iCh = 1:nChannels
-		for iS = 1:nSweeps(iR)
-			Rs_uncomp{iR}{1,iCh}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
-			Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
-			Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
-			Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
-			
-			if iCh == 1
-				if hasDateTime
-					TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
-				else
-					TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
-				end
-				
-			end
-		end
-		RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
-	end
-	
+    Temperature(iR,:) = Recs(iR).Sweeps(1).SwTemperature;
+
+    % NOW GET INFORMATION FROM TRACE/CHANNEL LEVEL FOR FIRST SWEEP OF EACH
+    % RECORDING
+    TimeUnit{iR,:}= {Recs(iR).Sweeps(1).Traces(:).TrXUnit};
+    ChUnit{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrYUnit};
+    ChName{iR,:} = {Recs(iR).Sweeps(1).Traces(:).TrLabel};
+    SR(iR,:) = 1/(Recs(iR).Sweeps(1).Traces(1).TrXInterval);
+
+    RecModeID{iR,:} = [Recs(iR).Sweeps(1).Traces(:).TrRecordingMode];
+    RecordingMode{iR,:} = reshape(RecModeNames(RecModeID{iR}+1),1,numel(RecModeID{iR,:}));
+
+    % SOLUTIONS SHOULD BE IDENTICAL FOR EACH CHANNEL, SO IMPORT FIRST
+    % CHANNEL ONLY
+    ExternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrExternalSolution];
+    InternalSolutionID{iR,:} = [Recs(iR).Sweeps(1).Traces(1).TrInternalSolution];
+
+    nSweeps(iR) = numel(Recs(iR).Sweeps); % replaced from Recs(iR).SeNumbersw due to occasional mismatch between data and metadata
+    nChannels = numel(ChUnit{iR,:});
+
+    Rs{iR} = cell(1,nChannels);
+    Rs_uncomp{iR} = cell(1,nChannels);
+    RsFractionComp{iR} = cell(1,nChannels);
+    Cm{iR} = cell(1,nChannels);
+    Vhold{iR} = cell(1,nChannels);
+
+    if hasDateTime
+        TimeStamp{iR} = NaT(1,nChannels);
+    else
+        TimeStamp{iR} = cell(1,nChannels);
+    end
+
+
+    for iCh = 1:nChannels
+        for iS = 1:nSweeps(iR)
+            Rs_uncomp{iR}{1,iCh}(1,iS) = 1/Recs(iR).Sweeps(iS).Traces(iCh).TrGSeries;
+            switch dataTree{1,1}.RoVersion
+                case 2000
+                    Rs{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
+                otherwise
+                    Rs{iR}{1,iCh}(1,iS) = Rs_uncomp{iR}{1,iCh}(1,iS) - Recs(iR).Sweeps(iS).Traces(iCh).TrRsValue;
+            end
+            Cm{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrCSlow;
+            Vhold{iR}{1,iCh}(1,iS) = Recs(iR).Sweeps(iS).Traces(iCh).TrTrHolding;
+
+            if iCh == 1
+                if hasDateTime
+                    TimeStamp{iR}(iS) = datetime(Recs(iR).Sweeps(iS).SwTimeMATLAB);
+                else
+                    TimeStamp{iR}{iS} = Recs(iR).Sweeps(iS).SwTimeMATLAB;
+                end
+
+            end
+        end
+        RsFractionComp{iR}{1,iCh} = 1-Rs{iR}{1,iCh}./Rs_uncomp{iR}{1,iCh};
+    end
+
 end
 
 
 % COMPILE DATA IN TABLE
 RecTab = table(ExperimentNumber,...
-	ExperimentName,...
-	RecNum,...
-	Rs,...
-	Cm,...
-	nSweeps,...
-	Vhold,...
-	Rs_uncomp,...
-	RsFractionComp,...
-	Stimulus,...
-	TimeUnit,...
-	ChUnit,...
-	ChName,...
-	Comment,...
-	RecordingMode,...
-	Temperature,...
-	ExternalSolutionID,...
-	InternalSolutionID,...
-	SR,...
-	TimeStamp,...
-	'VariableNames',{'Experiment',...
-	'ExperimentName',...
-	'Rec',...
-	'Rs',...
-	'Cm',...
-	'nSweeps',...
-	'Vhold',...
-	'Rs_uncomp',...
-	'RsFractionComp',...
-	'Stimulus',...
-	'TimeUnit',...
-	'ChUnit',...
-	'ChName',...
-	'Comment',...
-	'RecMode',...
-	'Temperature',...
-	'ExternalSolution',...
-	'InternalSolution',...
-	'SR',...
-	'TimeStamp'});
+    ExperimentName,...
+    RecNum,...
+    Rs,...
+    Cm,...
+    nSweeps,...
+    Vhold,...
+    Rs_uncomp,...
+    RsFractionComp,...
+    Stimulus,...
+    TimeUnit,...
+    ChUnit,...
+    ChName,...
+    Comment,...
+    RecordingMode,...
+    Temperature,...
+    ExternalSolutionID,...
+    InternalSolutionID,...
+    SR,...
+    TimeStamp,...
+    'VariableNames',{'Experiment',...
+    'ExperimentName',...
+    'Rec',...
+    'Rs',...
+    'Cm',...
+    'nSweeps',...
+    'Vhold',...
+    'Rs_uncomp',...
+    'RsFractionComp',...
+    'Stimulus',...
+    'TimeUnit',...
+    'ChUnit',...
+    'ChName',...
+    'Comment',...
+    'RecMode',...
+    'Temperature',...
+    'ExternalSolution',...
+    'InternalSolution',...
+    'SR',...
+    'TimeStamp'});
 end
 
 
@@ -218,14 +223,14 @@ sweepIDs = find(~cellfun(@isempty,dataTree(:,1)));
 traceSt = sweepIDs+1;
 
 if numel(sweepIDs)>1
-	traceEnd = [sweepIDs(2:end)-1;size(dataTree,1)];
+    traceEnd = [sweepIDs(2:end)-1;size(dataTree,1)];
 else
-	traceEnd = size(dataTree,1);
+    traceEnd = size(dataTree,1);
 end
 
 for iS = 1:numel(sweepIDs)
-	Sweeps(iS) = dataTree{sweepIDs(iS),1};
-	Sweeps(iS).Traces = [dataTree{traceSt(iS):traceEnd(iS),2}];
+    Sweeps(iS) = dataTree{sweepIDs(iS),1};
+    Sweeps(iS).Traces = [dataTree{traceSt(iS):traceEnd(iS),2}];
 end
 
 
